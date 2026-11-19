@@ -80,7 +80,7 @@
   }
   .search-box{position:relative}
   .search-box input{
-    width:100%;font-size:17px;padding:15px 48px 15px 16px;
+    width:100%;font-size:16.5px;padding:15px 48px 15px 14px;
     border:1.5px solid var(--line);border-radius:15px;background:#fff;
     line-height:1.4;
   }
@@ -298,7 +298,7 @@
   <section class="panel">
     <div class="search-box">
       <input id="search" type="search" inputmode="search" autocomplete="off"
-             placeholder="🔍 재료·요리 이름으로 찾기 (예: 닭다리살, 두부, 감자)" />
+             placeholder="🔍 재료나 요리 이름 검색" />
       <button class="clr hidden" id="btnClear" aria-label="검색어 지우기">✕</button>
     </div>
 
@@ -646,7 +646,21 @@ function mergeRecipes(baseList, mineList, serverList){
   return ordered;
 }
 
-/* 처음 한 번 넣어 두는 기본 레시피 3개 */
+/* 앱을 열었을 때 무엇을 보여 줄지 결정 (빈 화면 사고를 막는 규칙)
+   - 이 기기에 저장된 레시피가 있으면 그대로
+   - 저장된 값이 빈 목록인데, 사용자가 직접 전부 지웠거나 기본 레시피를 이미 넣은 기기면 빈 화면 유지
+   - 그 밖(처음 여는 기기, 저장이 실패했던 기기)은 기본 레시피를 넣는다 */
+function initialPlan(opts){
+  opts = opts || {};
+  var list = opts.list;
+  if(list && list.length) return { action: 'use', recipes: list };
+  if(opts.raw === null || opts.raw === undefined) return { action: 'seed' };
+  if(opts.deletedAll) return { action: 'keep-empty' };
+  if(opts.seededV2) return { action: 'keep-empty' };
+  return { action: 'seed' };
+}
+
+/* 처음 한 번 넣어 두는 기본 레시피 4개 */
 var SEED_IDS = ['seed-cream-chicken', 'seed-gamjatang', 'seed-kimgugsu', 'seed-eomuk-buchu'];
 
 function seedRecipes(){
@@ -762,6 +776,8 @@ function seedRecipes(){
   var LS_SEEDED  = 'rb.seeded.v1';
   var LS_EMAIL   = 'rb.email.v1';
   var LS_CHECKS  = 'rb.checks.v1';    /* { recipeId: { "주재료|양파": 1 } } */
+  var LS_SEED_V2 = 'rb.seededV2.v1';  /* 기본 레시피 4개를 넣었는지 */
+  var LS_DELETED_ALL = 'rb.deletedAll.v1'; /* 사용자가 직접 전부 지웠는지 */
 
   var state = {
     recipes: [],
@@ -795,44 +811,75 @@ function seedRecipes(){
     toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2600);
   }
 
-  /* ---------------- 이 기기 저장 ---------------- */
-  function loadLocal(){
+  /* ---------------- 이 기기 저장 ----------------
+     인스타·카톡 같은 앱 안에서 열면 브라우저가 저장소를 막는 경우가 있어요.
+     그때도 화면이 비지 않도록, 막히면 메모리에라도 담아 두고 알려 줍니다. */
+  var memStore = {};
+  var storeOK = true;
+  function canUseStorage(){
     try{
-      var raw = localStorage.getItem(LS_RECIPES);
-      if(!raw) return null;
+      var k = '__rb_probe__';
+      window.localStorage.setItem(k, '1');
+      window.localStorage.removeItem(k);
+      return true;
+    }catch(err){ return false; }
+  }
+  var store = {
+    get: function(k){
+      try{ return window.localStorage.getItem(k); }
+      catch(err){ storeOK = false; }
+      return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null;
+    },
+    set: function(k, v){
+      memStore[k] = v;
+      try{ window.localStorage.setItem(k, v); return true; }
+      catch(err){ storeOK = false; return false; }
+    },
+    remove: function(k){
+      delete memStore[k];
+      try{ window.localStorage.removeItem(k); }catch(err){ storeOK = false; }
+    }
+  };
+  storeOK = canUseStorage();
+
+  function loadLocal(){
+    var raw = null;
+    try{ raw = store.get(LS_RECIPES); }catch(err){ return null; }
+    if(!raw) return null;
+    try{
       var arr = JSON.parse(raw);
       if(!Array.isArray(arr)) return null;
       return arr.map(normRecipe);
     }catch(err){ return null; }
   }
   function saveLocal(){
-    try{ localStorage.setItem(LS_RECIPES, JSON.stringify(state.recipes)); }catch(err){}
+    try{ store.set(LS_RECIPES, JSON.stringify(state.recipes)); }catch(err){}
     backupLocal();
   }
   function backupLocal(){
     try{
-      var list = JSON.parse(localStorage.getItem(LS_BACKUP) || '[]');
+      var list = JSON.parse(store.get(LS_BACKUP) || '[]');
       if(!Array.isArray(list)) list = [];
       var snap = JSON.stringify(state.recipes);
       if(list.length && JSON.stringify(list[0].recipes) === snap) return;
       list.unshift({ at: Date.now(), recipes: state.recipes });
-      localStorage.setItem(LS_BACKUP, JSON.stringify(list.slice(0, 5)));
+      store.set(LS_BACKUP, JSON.stringify(list.slice(0, 5)));
     }catch(err){}
   }
   function loadBackups(){
     try{
-      var list = JSON.parse(localStorage.getItem(LS_BACKUP) || '[]');
+      var list = JSON.parse(store.get(LS_BACKUP) || '[]');
       return Array.isArray(list) ? list : [];
     }catch(err){ return []; }
   }
   function loadBaseMap(){
-    try{ return JSON.parse(localStorage.getItem(LS_BASE) || '{}') || {}; }catch(err){ return {}; }
+    try{ return JSON.parse(store.get(LS_BASE) || '{}') || {}; }catch(err){ return {}; }
   }
   function saveBase(uidKey, list, rev){
     try{
       var map = loadBaseMap();
       map[uidKey] = { recipes: list, rev: rev || 0 };
-      localStorage.setItem(LS_BASE, JSON.stringify(map));
+      store.set(LS_BASE, JSON.stringify(map));
     }catch(err){}
   }
   function loadBase(uidKey){
@@ -841,17 +888,10 @@ function seedRecipes(){
     return v && Array.isArray(v.recipes) ? v : null;
   }
   function loadChecks(){
-    try{ return JSON.parse(localStorage.getItem(LS_CHECKS) || '{}') || {}; }catch(err){ return {}; }
+    try{ return JSON.parse(store.get(LS_CHECKS) || '{}') || {}; }catch(err){ return {}; }
   }
   function saveChecks(map){
-    try{ localStorage.setItem(LS_CHECKS, JSON.stringify(map)); }catch(err){}
-  }
-
-  /* ---------------- 처음 기본 레시피 ---------------- */
-  function seedIfFirstTime(){
-    if(localStorage.getItem(LS_SEEDED)) return false;
-    try{ localStorage.setItem(LS_SEEDED, '1'); }catch(err){}
-    return true;
+    try{ store.set(LS_CHECKS, JSON.stringify(map)); }catch(err){}
   }
 
   /* ---------------- 상태 표시 ---------------- */
@@ -862,6 +902,10 @@ function seedRecipes(){
       el.textContent = (state.cloudState === 'synced' ? '☁️ 동기화됨 · ' : '⏳ 동기화 중 · ') + state.user.email;
       btn.textContent = '로그아웃';
       $('btnLogout').classList.remove('hidden');
+    } else if(!storeOK){
+      el.textContent = '⚠️ 이 브라우저에서는 저장이 막혀 있어요 · 크롬·사파리로 열면 저장돼요';
+      btn.textContent = '로그인';
+      $('btnLogout').classList.add('hidden');
     } else {
       el.textContent = '이 기기에만 저장됨 · 로그인하면 폰·태블릿이 함께 써요';
       btn.textContent = '로그인';
@@ -1097,6 +1141,7 @@ function seedRecipes(){
     } else {
       var fresh = normRecipe(Object.assign({ id: coreUid(), createdAt: now }, fields));
       state.recipes.unshift(fresh);
+      store.remove(LS_DELETED_ALL);
       toast('레시피를 담았어요');
     }
     closeEditor();
@@ -1109,6 +1154,8 @@ function seedRecipes(){
     if(!r) return;
     if(!confirm('「' + (r.title || '이 레시피') + '」를 삭제할까요?\n지운 레시피는 되돌리기 어려워요.')) return;
     state.recipes = state.recipes.filter(function(x){ return x.id !== id; });
+    store.set(LS_DELETED_ALL, state.recipes.length === 0 ? '1' : '0');
+    if(state.recipes.length) store.remove(LS_DELETED_ALL);
     var checks = loadChecks();
     delete checks[id];
     saveChecks(checks);
@@ -1140,8 +1187,16 @@ function seedRecipes(){
     getState: function(){ return state; },
     getRecipes: function(){ return state.recipes; },
     getBase: function(){ return state.base; },
-    isSeeded: function(){ return !!localStorage.getItem(LS_SEEDED); },
-    markSeeded: function(){ try{ localStorage.setItem(LS_SEEDED, '1'); }catch(err){} },
+    isSeeded: function(){ return !!store.get(LS_SEEDED); },
+    markSeeded: function(){ store.set(LS_SEEDED, '1'); },
+    isSeededV2: function(){ return !!store.get(LS_SEED_V2); },
+    markSeededV2: function(){ store.set(LS_SEED_V2, '1'); store.set(LS_SEEDED, '1'); },
+    isDeletedAll: function(){ return !!store.get(LS_DELETED_ALL); },
+    setDeletedAll: function(v){
+      if(v) store.set(LS_DELETED_ALL, '1'); else store.remove(LS_DELETED_ALL);
+    },
+    putSeeds: function(){ return putSeeds(); },
+    storeOK: function(){ return storeOK; },
     seedRecipes: seedRecipes,
     setRecipes: function(list){
       state.recipes = list;
@@ -1296,7 +1351,7 @@ function seedRecipes(){
   /* 로그인 창 */
   function openAuth(){
     $('authMsg').textContent = '';
-    $('aEmail').value = localStorage.getItem(LS_EMAIL) || (state.user ? state.user.email : '');
+    $('aEmail').value = store.get(LS_EMAIL) || (state.user ? state.user.email : '');
     $('aPass').value = '';
     $('btnLogout').classList.toggle('hidden', !state.user);
     $('authWrap').classList.remove('hidden');
@@ -1317,7 +1372,7 @@ function seedRecipes(){
     var email = $('aEmail').value.trim();
     var pass = $('aPass').value;
     if(!email || !pass){ $('authMsg').textContent = '이메일과 비밀번호를 모두 넣어 주세요.'; return; }
-    try{ localStorage.setItem(LS_EMAIL, email); }catch(err){}
+    store.set(LS_EMAIL, email);
     $('authMsg').textContent = '확인 중…';
     if(window.cloudLogin) window.cloudLogin(email, pass, create);
     else $('authMsg').textContent = '지금은 로그인 연결이 안 돼요. 인터넷을 확인해 주세요.';
@@ -1346,19 +1401,35 @@ function seedRecipes(){
   $('btnBackupOpen').addEventListener('click', openBackups);
 
   /* ---------------- 시작 ---------------- */
+  /* 기본 레시피를 넣고, 넣었다는 표시를 남김 */
+  function putSeeds(msg){
+    state.recipes = seedRecipes();
+    saveLocal();
+    store.set(LS_SEED_V2, '1');
+    if(store.get(LS_RECIPES)) store.set(LS_SEEDED, '1');
+    if(msg) toast(msg);
+    return state.recipes;
+  }
+
   (function init(){
-    var local = loadLocal();
-    if(local && local.length){
-      state.recipes = local;
-    } else if(local && local.length === 0){
-      state.recipes = [];
-    } else if(seedIfFirstTime()){
-      state.recipes = seedRecipes();
-      saveLocal();
-    } else {
-      state.recipes = [];
+    try{
+      var raw = null;
+      try{ raw = store.get(LS_RECIPES); }catch(err){ raw = null; }
+      var local = loadLocal();
+      var plan = initialPlan({
+        raw: raw,
+        list: local,
+        deletedAll: !!store.get(LS_DELETED_ALL),
+        seededV2: !!store.get(LS_SEED_V2)
+      });
+      if(plan.action === 'use') state.recipes = plan.recipes;
+      else if(plan.action === 'keep-empty') state.recipes = [];
+      else putSeeds();                               /* 처음 열었거나, 기본 레시피가 아직 없는 기기 */
+    }catch(err){
+      console.warn('[recipe-book] init', err);
+      if(!state.recipes.length) putSeeds();          /* 무슨 일이 있어도 빈 화면으로 두지 않음 */
     }
-    renderAll();
+    try{ renderAll(); }catch(err){ console.warn('[recipe-book] render', err); }
   })();
 })();
 </script>
@@ -1413,7 +1484,8 @@ async function saveToCloud(){
 
   const mine = App.getRecipes();
   const base = App.getBase();
-  if(mine.length === 0 && base.length > 0){
+  /* 사용자가 직접 삭제 버튼으로 전부 지운 경우에만 빈 저장을 허용 */
+  if(mine.length === 0 && base.length > 0 && !App.isDeletedAll()){
     App.setCloudState('error');
     App.toast('기존 레시피가 있는데 빈 화면이라 저장을 막았어요. 백업에서 되돌릴 수 있어요.');
     return;
@@ -1433,6 +1505,7 @@ async function saveToCloud(){
           recipes: m,
           rev: nextRev,
           seeded: true,
+          seedV: 2,
           updatedAt: serverTimestamp()
         }, { merge: true });
         return { recipes: m, rev: nextRev };
@@ -1446,6 +1519,7 @@ async function saveToCloud(){
         recipes: clientMerge,
         rev: nextRev,
         seeded: true,
+        seedV: 2,
         updatedAt: serverTimestamp()
       }, { merge: true });
       merged = clientMerge; rev = nextRev;
@@ -1475,13 +1549,20 @@ function watch(uid){
       loadedOnce = true;
       /* 처음 열었을 때: 이 기기 + 서버를 3-way 병합 */
       const base = App.getBase() || [];
-      /* 서버가 이미 '기본 레시피를 넣었다'고 표시해 뒀는데 비어 있으면 = 지운 것 → 되살리지 않음 */
-      if(server.seeded && server.recipes.length === 0){
-        App.markSeeded();
-        mine = mine.filter(r => (window.SEED_IDS || []).indexOf(r.id) < 0);
-        App.setRecipes(mine);
+      let merged = window.mergeRecipes(base, mine, server.recipes);
+
+      /* 화면이 0개가 되는 일은 사용자가 직접 전부 지웠을 때만 일어나야 한다.
+         그 밖에 서버·이 기기 모두 비어 보이면 기본 레시피 4개를 넣어 되살린다. */
+      if(merged.length === 0 && !App.isDeletedAll()){
+        merged = App.putSeeds();
+        App.markSeededV2();
+        App.applyFromCloud(merged, server.rev);
+        App.setSyncReady(true);
+        App.setCloudState('synced');
+        saveToCloud();
+        return;
       }
-      const merged = window.mergeRecipes(base, mine, server.recipes);
+
       App.applyFromCloud(merged, server.rev);
       App.setSyncReady(true);
       App.setCloudState('synced');
@@ -1496,6 +1577,9 @@ function watch(uid){
     /* 이후 변경: 다른 기기 기록을 합쳐서 반영 */
     const base = App.getBase();
     const merged = window.mergeRecipes(base, App.getRecipes(), server.recipes);
+    if(merged.length === 0 && (base.length || App.getRecipes().length) && !App.isDeletedAll()){
+      return;                        /* 서버가 비었다고 이 기기 기록을 지우지 않음 */
+    }
     if(JSON.stringify(merged) !== JSON.stringify(App.getRecipes())){
       App.applyFromCloud(merged, server.rev);
       App.setCloudState('synced');
