@@ -133,7 +133,7 @@
   }
   .badge.form{background:var(--gold);color:#8A5A12;border:1px solid var(--gold-line)}
   .r-meta{margin-top:8px;font-size:15px;color:var(--muted);line-height:1.5}
-  .r-ings{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .r-ings{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px;padding-right:2px}
   .r-ing{
     font-size:14px;font-weight:600;color:var(--ink-2);background:var(--bg-2);
     border:0;border-radius:9px;padding:6px 10px;line-height:1.35;
@@ -957,14 +957,14 @@ function seedRecipes(){
     }).join('');
     var rest = (r.mains || []).length - 4;
 
-    return '<button class="recipe" data-open="' + esc(r.id) + '">'
+    return '<article class="recipe" role="button" tabindex="0" data-open="' + esc(r.id) + '">'
       + '<div class="r-top"><h3 class="r-title">' + esc(r.title || '이름 없는 레시피') + '</h3><span class="r-arrow">›</span></div>'
       + '<div class="badges"><span class="badge">' + esc(r.cuisine) + '</span><span class="badge form">' + esc(r.form) + '</span>'
       + (r.steps && r.steps.length ? '<span class="badge form" style="background:#F3EFEA;border-color:#E7DED3;color:#7A6A5B">' + r.steps.length + '단계</span>' : '')
       + '</div>'
       + (parts.length ? '<div class="r-meta">' + parts.join(' · ') + '</div>' : '')
       + (ings ? '<div class="r-ings">' + ings + (rest > 0 ? '<span class="r-more">+' + rest + '</span>' : '') + '</div>' : '')
-      + '</button>';
+      + '</article>';
   }
 
   function renderList(){
@@ -1350,6 +1350,11 @@ function seedRecipes(){
   $('backupWrap').addEventListener('click', function(e){ if(e.target === this) this.classList.add('hidden'); });
   $('backupClose').onclick = function(){ $('backupWrap').classList.add('hidden'); };
   document.addEventListener('keydown', function(e){
+    if((e.key === 'Enter' || e.key === ' ') && e.target && e.target.getAttribute && e.target.getAttribute('role') === 'button' && e.target.hasAttribute('data-open')){
+      e.preventDefault();
+      openDetail(e.target.getAttribute('data-open'));
+      return;
+    }
     if(e.key !== 'Escape') return;
     if(!$('detailWrap').classList.contains('hidden')) closeDetail();
     if(!$('editorWrap').classList.contains('hidden')) closeEditor();
