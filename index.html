@@ -1,0 +1,1526 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#FBF5EC" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="레시피북" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%B3%3C/text%3E%3C/svg%3E" />
+<title>나빈님의 레시피북</title>
+<style>
+  :root{
+    --bg:#FBF5EC;
+    --bg-2:#F6ECDF;
+    --card:#FFFDFB;
+    --ink:#2B2320;
+    --ink-2:#4C4139;
+    --muted:#867266;
+    --line:#EDDFD0;
+    --accent:#BE5A2A;
+    --accent-dark:#8E3F18;
+    --accent-soft:#FAE7D7;
+    --green:#256B4E;
+    --green-soft:#E3F3E9;
+    --gold:#FFF6E0;
+    --gold-line:#F0DFB0;
+    --radius:20px;
+    --shadow:0 8px 22px rgba(96,66,42,.07);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:17px;
+    line-height:1.72;
+    -webkit-text-size-adjust:100%;
+    padding-bottom:48px;
+  }
+  button{font-family:inherit;cursor:pointer}
+  input,textarea,select{font-family:inherit;color:var(--ink)}
+  .hidden{display:none !important}
+  .wrap{max-width:920px;margin:0 auto;padding:0 14px 20px}
+
+  /* ---------------- 상단 ---------------- */
+  .top{
+    position:sticky;top:0;z-index:20;
+    background:rgba(251,245,236,.94);
+    backdrop-filter:saturate(140%) blur(8px);
+    -webkit-backdrop-filter:saturate(140%) blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:10px 14px 11px;
+    margin:0 -14px 14px;
+  }
+  .top-in{max-width:920px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .brand{min-width:0;flex:1 1 auto}
+  .brand h1{margin:0;font-size:22px;letter-spacing:-.5px;line-height:1.3}
+  .brand .sub{margin:2px 0 0;font-size:13.5px;color:var(--muted);line-height:1.45}
+  .top-btns{display:flex;gap:8px;flex:0 0 auto}
+
+  .primary{
+    background:var(--accent);color:#fff;border:0;border-radius:14px;
+    padding:13px 18px;font-size:16.5px;font-weight:800;letter-spacing:-.2px;
+    box-shadow:0 5px 14px rgba(190,90,42,.25);
+  }
+  .primary:active{transform:translateY(1px)}
+  .ghost{
+    background:#fff;color:var(--ink-2);border:1.5px solid var(--line);
+    border-radius:14px;padding:12px 15px;font-size:15.5px;font-weight:700;
+  }
+  .ghost:active{background:var(--bg-2)}
+  .ghost.small,.primary.small{padding:9px 13px;font-size:14.5px;border-radius:12px;font-weight:700}
+
+  /* ---------------- 검색 / 필터 ---------------- */
+  .panel{
+    background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
+    padding:14px;box-shadow:var(--shadow);
+  }
+  .search-box{position:relative}
+  .search-box input{
+    width:100%;font-size:17px;padding:15px 48px 15px 16px;
+    border:1.5px solid var(--line);border-radius:15px;background:#fff;
+    line-height:1.4;
+  }
+  .search-box input::placeholder{color:#A89787}
+  .search-box input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(190,90,42,.10)}
+  .search-box .clr{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    width:36px;height:36px;border-radius:50%;border:0;background:var(--bg-2);
+    color:var(--ink-2);font-size:17px;line-height:1;
+  }
+
+  .frow{display:flex;gap:8px;align-items:flex-start;margin-top:13px}
+  .flabel{
+    flex:0 0 auto;font-size:13.5px;font-weight:800;color:var(--muted);
+    padding-top:13px;min-width:32px;letter-spacing:-.2px;
+  }
+  .chips{display:flex;gap:8px;flex-wrap:wrap;min-width:0}
+  .chips.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .chips.scroll::-webkit-scrollbar{height:0}
+  .chip{
+    flex:0 0 auto;
+    background:#fff;color:var(--ink-2);border:1.5px solid var(--line);
+    border-radius:999px;padding:10px 16px;font-size:15.5px;font-weight:700;
+    min-height:44px;letter-spacing:-.2px;
+  }
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:800}
+  .chip:active{transform:translateY(1px)}
+  .chip.mini{font-size:15px;padding:8px 13px;min-height:38px;background:var(--bg-2);border-color:var(--bg-2);color:var(--ink-2);font-weight:600}
+
+  .list-meta{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin:18px 4px 10px;font-size:15px;color:var(--muted);font-weight:700;
+  }
+
+  /* ---------------- 레시피 카드 ---------------- */
+  .recipe{
+    display:block;width:100%;text-align:left;
+    background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
+    padding:16px 16px 14px;margin-bottom:12px;box-shadow:var(--shadow);
+    color:var(--ink);
+  }
+  .recipe:active{transform:translateY(1px);background:#FFFCF8}
+  .r-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .r-title{margin:0;font-size:20px;line-height:1.4;letter-spacing:-.5px;font-weight:800;color:var(--ink)}
+  .r-arrow{flex:0 0 auto;color:#C0AB97;font-size:20px;line-height:1.2;padding-top:2px}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .badge{
+    font-size:13px;font-weight:800;padding:4px 10px;border-radius:9px;letter-spacing:-.2px;
+    background:var(--accent-soft);color:var(--accent-dark);
+  }
+  .badge.form{background:var(--gold);color:#8A5A12;border:1px solid var(--gold-line)}
+  .r-meta{margin-top:8px;font-size:15px;color:var(--muted);line-height:1.5}
+  .r-ings{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .r-ing{
+    font-size:14px;font-weight:600;color:var(--ink-2);background:var(--bg-2);
+    border:0;border-radius:9px;padding:6px 10px;line-height:1.35;
+  }
+  .r-ing:active{background:#EBDCC9}
+  .r-more{align-self:center;font-size:13.5px;color:var(--muted);font-weight:700;padding-left:2px}
+
+  .empty{
+    text-align:center;color:var(--muted);font-size:16px;line-height:1.75;
+    padding:38px 18px;background:var(--card);border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+  }
+  .empty b{display:block;font-size:18px;color:var(--ink-2);margin-bottom:6px}
+
+  /* ---------------- 모달 공통 ---------------- */
+  .backdrop{
+    position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;
+    background:rgba(44,30,20,.42);
+  }
+  .sheet{
+    width:100%;max-width:820px;max-height:94vh;overflow-y:auto;
+    background:var(--card);border-radius:24px 24px 0 0;
+    padding:16px 16px 26px;-webkit-overflow-scrolling:touch;
+    box-shadow:0 -8px 30px rgba(44,30,20,.18);
+  }
+  @media(min-width:760px){
+    .backdrop{align-items:center;padding:22px}
+    .sheet{border-radius:26px;padding:24px 28px 28px;max-height:90vh}
+  }
+  .sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .sheet-title{margin:0;font-size:23px;line-height:1.38;letter-spacing:-.6px;font-weight:800}
+  .x{
+    flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);
+    background:#fff;color:var(--ink-2);font-size:19px;line-height:1;
+  }
+  .grab{width:44px;height:5px;border-radius:99px;background:#E4D5C4;margin:0 auto 10px}
+
+  /* ---------------- 상세 ---------------- */
+  .det-meta{margin-top:10px;font-size:15px;color:var(--muted);line-height:1.6}
+  .sec{margin-top:24px}
+  .sec-h{
+    display:flex;align-items:center;gap:8px;margin:0 0 11px;
+    font-size:17px;font-weight:800;letter-spacing:-.3px;color:var(--ink);
+  }
+  .sec-h .n{font-size:14px;font-weight:800;color:var(--muted);background:var(--bg-2);border-radius:8px;padding:2px 8px}
+  .ings{display:flex;flex-direction:column;gap:8px}
+  .ing{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:#fff;border:1.5px solid var(--line);border-radius:15px;
+    padding:13px 14px;font-size:16.5px;line-height:1.5;color:var(--ink);font-weight:600;
+  }
+  .ing .box{
+    flex:0 0 24px;width:24px;height:24px;border-radius:8px;border:2px solid #DCC9B5;
+    display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;
+    background:#fff;font-weight:800;
+  }
+  .ing.on{background:var(--green-soft);border-color:#B9DCC8}
+  .ing.on .box{background:var(--green);border-color:var(--green);color:#fff}
+  .ing.on .txt{color:#2E6450}
+  .ing:active{transform:translateY(1px)}
+
+  .steps{display:flex;flex-direction:column;gap:11px}
+  .step{
+    display:flex;gap:14px;background:#fff;border:1.5px solid var(--line);
+    border-radius:17px;padding:14px 15px;
+  }
+  .step .num{
+    flex:0 0 42px;width:42px;height:42px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:18px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;line-height:1;
+  }
+  .step .txt{font-size:18px;line-height:1.78;color:var(--ink);letter-spacing:-.2px;padding-top:4px}
+  @media(max-width:400px){
+    .step{gap:11px;padding:13px 12px}
+    .step .num{flex-basis:36px;width:36px;height:36px;font-size:16.5px}
+    .step .txt{font-size:17px}
+  }
+
+  .memo{
+    background:var(--gold);border:1.5px solid var(--gold-line);border-radius:17px;
+    padding:14px 16px;font-size:16.5px;line-height:1.75;color:#5C4515;
+  }
+  .det-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}
+  .linkbtn{
+    display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;
+    border-radius:15px;padding:14px 18px;font-size:16px;font-weight:800;text-decoration:none;
+    box-shadow:0 5px 14px rgba(190,90,42,.22);
+  }
+  .linkbtn:active{transform:translateY(1px)}
+  .danger{color:#B23A2E;border-color:#F0D2CC;background:#FFF6F4}
+
+  /* ---------------- 편집 ---------------- */
+  .field{margin-bottom:17px}
+  .field > label{display:block;font-size:15px;font-weight:800;color:var(--ink-2);margin-bottom:7px;letter-spacing:-.2px}
+  .field input[type=text],.field input[type=url],.field textarea{
+    width:100%;font-size:17px;padding:13px 14px;line-height:1.6;
+    border:1.5px solid var(--line);border-radius:14px;background:#fff;
+  }
+  .field textarea{min-height:104px;resize:vertical}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(190,90,42,.10)}
+  .sub-hint{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.55}
+  .two{display:flex;gap:12px}
+  .two > .field{flex:1 1 0;min-width:0}
+  @media(max-width:420px){.two{flex-direction:column;gap:0}}
+  .savebar{
+    position:sticky;bottom:-26px;margin:6px -16px -26px;padding:12px 16px 16px;
+    background:linear-gradient(180deg,rgba(255,253,251,.6),var(--card) 42%);
+    display:flex;gap:10px;
+  }
+  @media(min-width:760px){.savebar{bottom:-28px;margin:6px -28px -28px;padding:12px 28px 20px}}
+  .savebar .primary{flex:1 1 auto}
+  .savebar .ghost{flex:0 0 auto}
+
+  /* ---------------- 로그인 ---------------- */
+  .auth-msg{font-size:15px;color:#B23A2E;min-height:22px;margin:8px 0 0;line-height:1.5}
+  .auth-ok{color:var(--green)}
+  .auth-alt{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+  .backup-item{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:9px;background:#fff;
+  }
+  .backup-item .bi-main{font-size:15.5px;font-weight:700;line-height:1.5;color:var(--ink-2)}
+  .backup-item .bi-sub{font-size:13.5px;color:var(--muted);font-weight:600}
+
+  /* ---------------- 토스트 ---------------- */
+  #toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:#3A2C22;color:#fff;font-size:15.5px;font-weight:700;line-height:1.5;
+    padding:12px 18px;border-radius:14px;max-width:88vw;text-align:center;
+    opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:90;
+    box-shadow:0 10px 24px rgba(0,0,0,.22);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top-in">
+    <div class="brand">
+      <h1>🍳 나빈님의 레시피북</h1>
+      <p class="sub" id="cloudInfo">이 기기에 저장 중</p>
+    </div>
+    <div class="top-btns">
+      <button class="primary small" id="btnNew">＋ 새 레시피</button>
+      <button class="ghost small" id="btnAuth">로그인</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="panel">
+    <div class="search-box">
+      <input id="search" type="search" inputmode="search" autocomplete="off"
+             placeholder="🔍 재료·요리 이름으로 찾기 (예: 닭다리살, 두부, 감자)" />
+      <button class="clr hidden" id="btnClear" aria-label="검색어 지우기">✕</button>
+    </div>
+
+    <div class="frow">
+      <span class="flabel">종류</span>
+      <div class="chips" id="cuisineChips"></div>
+    </div>
+    <div class="frow">
+      <span class="flabel">형태</span>
+      <div class="chips" id="formChips"></div>
+    </div>
+    <div class="frow" id="ingRow">
+      <span class="flabel">재료</span>
+      <div class="chips scroll" id="ingChips"></div>
+    </div>
+  </section>
+
+  <div class="list-meta">
+    <span id="countText">레시피 0개</span>
+    <button class="ghost small hidden" id="btnReset">필터 초기화</button>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<!-- ================= 상세 ================= -->
+<div class="backdrop hidden" id="detailWrap">
+  <div class="sheet" id="detailSheet">
+    <div class="grab"></div>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ================= 편집 ================= -->
+<div class="backdrop hidden" id="editorWrap">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <h2 class="sheet-title" id="editorTitle">새 레시피</h2>
+      <button class="x" id="editorClose" aria-label="닫기">✕</button>
+    </div>
+    <p class="sub-hint" id="editorHint">재료와 만드는 법은 한 줄에 하나씩 적으면 자동으로 나눠 담아요.</p>
+
+    <input type="hidden" id="fId" />
+
+    <div class="field">
+      <label for="fTitle">요리 이름</label>
+      <input type="text" id="fTitle" placeholder="예) 크림치킨 리가토니" />
+    </div>
+
+    <div class="field">
+      <label>종류</label>
+      <div class="chips" id="pickCuisine"></div>
+    </div>
+
+    <div class="field">
+      <label>형태</label>
+      <div class="chips" id="pickForm"></div>
+    </div>
+
+    <div class="two">
+      <div class="field">
+        <label for="fServings">인분</label>
+        <input type="text" id="fServings" placeholder="예) 2인 기준" />
+      </div>
+      <div class="field">
+        <label for="fSource">출처</label>
+        <input type="text" id="fSource" placeholder="예) @youngs_recipe" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="fMains">주재료</label>
+      <textarea id="fMains" placeholder="닭다리살 300g&#10;리가토니면 크게 한 주먹&#10;크림 200~300g"></textarea>
+      <div class="sub-hint">한 줄에 하나씩, 또는 쉼표로 구분해서 적어 주세요.</div>
+    </div>
+
+    <div class="field">
+      <label for="fSeasonings">양념 · 기타</label>
+      <textarea id="fSeasonings" placeholder="버터 2스푼&#10;올리브오일&#10;소금, 후추"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="fSteps">만드는 법</label>
+      <textarea id="fSteps" placeholder="양파는 슬라이스, 대파는 듬성듬성 썬다.&#10;닭다리살에 소금간을 하고 껍질부터 굽는다."></textarea>
+      <div class="sub-hint">한 줄에 한 단계씩 적으면 1, 2, 3… 번호가 자동으로 붙어요.</div>
+    </div>
+
+    <div class="field">
+      <label for="fLink">원본 링크</label>
+      <input type="url" id="fLink" inputmode="url" placeholder="https://www.instagram.com/reel/..." />
+    </div>
+
+    <div class="field">
+      <label for="fMemo">메모 · 꿀팁</label>
+      <textarea id="fMemo" style="min-height:80px" placeholder="예) 아이들이랑 먹을 땐 머스타드 대신 카레를 넣어도 좋아요"></textarea>
+    </div>
+
+    <div class="savebar">
+      <button class="primary" id="btnSave">저장</button>
+      <button class="ghost danger hidden" id="btnDeleteInEditor">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 로그인 ================= -->
+<div class="backdrop hidden" id="authWrap">
+  <div class="sheet" style="max-width:520px">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <h2 class="sheet-title">로그인</h2>
+      <button class="x" id="authClose" aria-label="닫기">✕</button>
+    </div>
+    <p class="sub-hint">가족 대시보드에서 쓰는 이메일·비밀번호를 그대로 넣으면 폰과 태블릿이 같은 레시피로 맞춰져요. 로그인하지 않아도 이 기기에는 저장됩니다.</p>
+    <div class="field">
+      <label for="aEmail">이메일</label>
+      <input type="text" id="aEmail" inputmode="email" autocomplete="username" placeholder="예) gmlrud2654@gmail.com" />
+    </div>
+    <div class="field">
+      <label for="aPass">비밀번호</label>
+      <input type="password" id="aPass" autocomplete="current-password" placeholder="비밀번호" />
+    </div>
+    <p class="auth-msg" id="authMsg"></p>
+    <div class="auth-alt">
+      <button class="primary" id="btnLogin">로그인</button>
+      <button class="ghost" id="btnCreate">처음이면 계정 만들기</button>
+    </div>
+    <div class="auth-alt">
+      <button class="ghost small hidden" id="btnLogout">로그아웃</button>
+      <button class="ghost small" id="btnBackupOpen">💾 백업에서 되돌리기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 백업 ================= -->
+<div class="backdrop hidden" id="backupWrap">
+  <div class="sheet" style="max-width:560px">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <h2 class="sheet-title">💾 백업에서 되돌리기</h2>
+      <button class="x" id="backupClose" aria-label="닫기">✕</button>
+    </div>
+    <p class="sub-hint">이 기기에 자동으로 남겨 둔 최근 기록이에요. 잘못 지웠을 때 되돌릴 수 있어요.</p>
+    <div id="backupList"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==================================================================
+   레시피북 두뇌 (RECIPE-CORE)
+   화면과 상관없는 순수 계산만 모아 둔 곳 — 테스트도 이 부분을 그대로 돌립니다.
+   ================================================================== */
+/* ================= RECIPE-CORE:START ================= */
+var CUISINES = ['한식','일식','양식','중식','기타'];
+var FORMS = ['반찬','국','메인','면·밥','간식'];
+
+function coreUid(){
+  return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+/* 재료·단계 글자를 목록으로 나눔 (줄바꿈 또는 쉼표) */
+function parseList(text){
+  return String(text == null ? '' : text)
+    .split(/[\n,、，]/)
+    .map(function(s){ return String(s).replace(/^[\s\-•·*]+/, '').trim(); })
+    .filter(function(s){ return s.length > 0; });
+}
+
+/* 만드는 법: 한 줄에 한 단계. 앞에 붙은 번호·기호는 떼어 냄 */
+function parseSteps(text){
+  return String(text == null ? '' : text)
+    .split('\n')
+    .map(function(s){
+      return String(s)
+        .replace(/^[\s\-•·*]+/, '')
+        .replace(/^\d+\s*[\.\)\-]\s*/, '')
+        .trim();
+    })
+    .filter(function(s){ return s.length > 0; });
+}
+
+/* 재료에서 이름만 (수량·괄호 설명 제거): "닭다리살 300g" -> "닭다리살" */
+function ingName(text){
+  var raw = String(text == null ? '' : text).trim();
+  var s = raw.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ');
+  s = s.replace(/[\d].*$/, '');
+  s = s.replace(/[\s~,./+\-]+$/, '').trim();
+  s = s.replace(/\s+/g, ' ');
+  return s || raw;
+}
+
+function ingLabel(text, max){
+  var n = ingName(text);
+  max = max || 12;
+  return n.length > max ? n.slice(0, max) + '…' : n;
+}
+
+function normText(s){
+  return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+/* 레시피 모양을 한 가지로 통일 (저장·비교를 안정적으로 하기 위해) */
+function normRecipe(e){
+  e = e || {};
+  var cuisine = CUISINES.indexOf(String(e.cuisine || '')) >= 0 ? String(e.cuisine) : '기타';
+  var form = FORMS.indexOf(String(e.form || '')) >= 0 ? String(e.form) : '메인';
+  var mains = (Array.isArray(e.mains) ? e.mains : []).map(String).filter(Boolean);
+  var seasonings = (Array.isArray(e.seasonings) ? e.seasonings : []).map(String).filter(Boolean);
+  var steps = (Array.isArray(e.steps) ? e.steps : []).map(String).filter(Boolean);
+  var now = Date.now();
+  return {
+    id: e.id || coreUid(),
+    title: String(e.title || '').replace(/\s+/g, ' ').trim(),
+    cuisine: cuisine,
+    form: form,
+    servings: String(e.servings || '').trim(),
+    source: String(e.source || '').trim(),
+    mains: mains,
+    seasonings: seasonings,
+    steps: steps,
+    link: String(e.link || '').trim(),
+    memo: String(e.memo || '').trim(),
+    createdAt: Number(e.createdAt) || now,
+    updatedAt: Number(e.updatedAt) || now
+  };
+}
+
+/* 검색어가 들어 있는지 볼 때 훑는 글자들 */
+function recipeHaystack(r){
+  r = r || {};
+  return normText([
+    r.title, r.cuisine, r.form, r.servings, r.source,
+    (r.mains || []).join(' '),
+    (r.seasonings || []).join(' '),
+    (r.steps || []).join(' '),
+    r.memo
+  ].join(' '));
+}
+
+function matchesQuery(r, q){
+  var tokens = normText(q).split(' ').filter(Boolean);
+  if(!tokens.length) return true;
+  var hay = recipeHaystack(r);
+  for(var i = 0; i < tokens.length; i++){
+    if(hay.indexOf(tokens[i]) < 0) return false;   /* 여러 단어는 모두 들어 있어야 함 */
+  }
+  return true;
+}
+
+/* 종류 + 형태 + 검색어를 한꺼번에 적용 */
+function filterRecipes(list, f){
+  f = f || {};
+  var cuisine = f.cuisine || '전체';
+  var form = f.form || '전체';
+  var q = f.query || '';
+  return (list || []).filter(function(r){
+    if(!r) return false;
+    if(cuisine !== '전체' && r.cuisine !== cuisine) return false;
+    if(form !== '전체' && r.form !== form) return false;
+    return matchesQuery(r, q);
+  });
+}
+
+/* 목록에 자주 나오는 재료 (재료 칩) */
+function topIngredients(list, n){
+  var count = {}, order = [];
+  (list || []).forEach(function(r){
+    if(!r) return;
+    (r.mains || []).concat(r.seasonings || []).forEach(function(t){
+      var name = ingName(t);
+      if(!name) return;
+      if(!Object.prototype.hasOwnProperty.call(count, name)){ count[name] = 0; order.push(name); }
+      count[name]++;
+    });
+  });
+  order.sort(function(a, b){
+    if(count[b] !== count[a]) return count[b] - count[a];
+    return a < b ? -1 : (a > b ? 1 : 0);
+  });
+  return order.slice(0, n || 12);
+}
+
+/* ---------------- 3-way 병합 (내 기기 / 서버 / 기준본) ---------------- */
+function deepEq(a, b){ return JSON.stringify(a) === JSON.stringify(b); }
+
+function idxById(list){
+  var o = {};
+  (list || []).forEach(function(x){ if(x && x.id) o[x.id] = x; });
+  return o;
+}
+
+var RECIPE_FIELDS = ['title','cuisine','form','servings','source','mains','seasonings','steps','link','memo'];
+
+function mergeRecipe(b, m, s){
+  b = b || {}; m = m || {}; s = s || {};
+  var out = {};
+  Object.keys(m).forEach(function(k){ out[k] = m[k]; });
+  RECIPE_FIELDS.forEach(function(f){
+    var mv = m[f], sv = s[f], bv = b[f];
+    if(deepEq(mv, sv)) return;                 /* 둘이 같음 */
+    if(deepEq(mv, bv)){ out[f] = sv; return; } /* 내 변경 없음 → 서버 것 */
+    if(deepEq(sv, bv)){ out[f] = mv; return; } /* 서버 변경 없음 → 내 것 */
+    out[f] = (Number(m.updatedAt) || 0) >= (Number(s.updatedAt) || 0) ? mv : sv;  /* 둘 다 바뀜 → 최근 것 */
+  });
+  out.updatedAt = Math.max(Number(m.updatedAt) || 0, Number(s.updatedAt) || 0);
+  out.createdAt = Math.min(Number(m.createdAt) || 0, Number(s.createdAt) || 0) ||
+                  Number(m.createdAt) || Number(s.createdAt) || Date.now();
+  return out;
+}
+
+function mergeRecipes(baseList, mineList, serverList){
+  var B = idxById(baseList), M = idxById(mineList), S = idxById(serverList);
+  var ids = [];
+  Object.keys(S).forEach(function(id){ ids.push(id); });
+  Object.keys(M).forEach(function(id){ if(ids.indexOf(id) < 0) ids.push(id); });
+  var out = [];
+  ids.forEach(function(id){
+    var m = M[id], s = S[id], b = B[id];
+    if(m && s){
+      if(deepEq(m, s)) out.push(m);
+      else if(b && deepEq(b, m)) out.push(s);
+      else if(b && deepEq(b, s)) out.push(m);
+      else out.push(mergeRecipe(b, m, s));
+    } else if(m && !s){
+      if(!b) out.push(m);        /* 내가 새로 만든 것 */
+      /* b가 있으면 서버에서 지워진 것 → 삭제 반영 */
+    } else if(!m && s){
+      if(!b) out.push(s);        /* 다른 기기에서 만든 것 */
+      /* b가 있으면 내가 지운 것 → 삭제 반영 */
+    }
+  });
+  var ordered = [];
+  (mineList || []).forEach(function(x){
+    if(!x || !x.id) return;
+    for(var i = 0; i < out.length; i++){
+      if(out[i].id === x.id && !ordered.some(function(r){ return r.id === x.id; })){ ordered.push(out[i]); break; }
+    }
+  });
+  out.forEach(function(o){
+    if(!ordered.some(function(r){ return r.id === o.id; })) ordered.push(o);
+  });
+  return ordered;
+}
+
+/* 처음 한 번 넣어 두는 기본 레시피 3개 */
+var SEED_IDS = ['seed-cream-chicken', 'seed-gamjatang', 'seed-kimgugsu', 'seed-eomuk-buchu'];
+
+function seedRecipes(){
+  var t = Date.now();
+  return [
+    normRecipe({
+      id: 'seed-cream-chicken',
+      title: '크림치킨 리가토니',
+      cuisine: '양식',
+      form: '메인',
+      servings: '2인 기준',
+      source: '@youngs_recipe',
+      mains: ['닭다리살 300g','리가토니면 크게 한 주먹','크림 200~300g','양송이버섯 5개','양파 1/2개','대파 흰부분 1개','마늘 2개'],
+      seasonings: ['버터 2스푼','올리브오일','물 250ml','치킨스톡 1스푼','홀그레인 머스타드 1스푼(생략 가능)','페퍼론치노','소금','후추','파슬리','레몬즙'],
+      steps: [
+        '양파는 슬라이스, 대파는 듬성듬성, 양송이는 반으로 썬다.',
+        '닭다리살에 소금간을 과감히 하고 오일 두른 팬에 껍질부터 중강불로 빠르게 구워 색을 낸다.',
+        '양송이를 넣어 더 굽다가 불을 줄이고 양파·대파를 넣는다.',
+        '버터(1스푼), 다진 마늘을 넣고 소금간을 추가한다.',
+        '물 250ml와 치킨스톡 1스푼을 넣고 2~3분 살짝 끓인다.',
+        '크림을 넣고 끓이다가 살짝 줄어들면 머스타드를 넣는다.',
+        '페퍼론치노를 부숴 넣고 80%만 삶은 리가토니면을 넣는다.',
+        '나머지 20%는 팬에서 약불로 천천히 익힌다.',
+        '남은 버터(1스푼)를 넣어 마무리하고 5분 정도 둔다.',
+        '접시에 담아 후추·파슬리·레몬즙을 뿌려 완성한다.'
+      ],
+      link: 'https://www.instagram.com/reel/DfeviApJO9r/',
+      memo: '아이들이랑 먹을 땐 머스타드·페퍼론치노 대신 카레를 넣어도 좋아한다는 댓글 꿀팁.',
+      createdAt: t - 3000,
+      updatedAt: t - 3000
+    }),
+    normRecipe({
+      id: 'seed-gamjatang',
+      title: '순살감자탕',
+      cuisine: '한식',
+      form: '국',
+      servings: '3~4인 기준',
+      source: '@odi__home',
+      mains: ['돼지 앞다리살 800~1,000g','시래기 200~300g','감자 3개','대파 1대','양파 1개','사골육수 500g 2팩','깻잎'],
+      seasonings: ['고추장 크게 1숟갈','고춧가루 크게 4숟갈','멸치액젓 2숟갈','다진마늘 2숟갈','된장 2스푼','맛술 2스푼','진간장 1~2스푼','소고기 다시다 1스푼(생략 가능)','미원 1/3스푼(생략 가능)','들깨가루 3스푼(생략 가능)'],
+      steps: [
+        '감자탕 양념(고추장·고춧가루·멸치액젓·다진마늘 등)을 먼저 섞어 둔다.',
+        '돼지고기 앞다리살은 먹기 좋게 두툼하게 자른다.',
+        '냄비에 물(고기 잠길 정도)을 넣고 끓으면 고기와 된장 2스푼, 맛술 2스푼을 풀어 넣는다.',
+        '끓어오르면 거품을 꼭 걷어 낸다.',
+        '양념장을 넣고 뚜껑을 연 채 중불로 20분간 끓인다.',
+        '20분 뒤 감자, 대파, 양파, 시래기를 넣는다.',
+        '사골육수 500g 2팩을 넣고 뚜껑을 연 채 중불에서 40분 더 끓인다.',
+        '진간장(1~2스푼), 다시다, 미원(취향껏)을 넣는다.',
+        '간을 보고 싱거우면 간장 추가, 짜면 물 한 컵을 더 넣는다.',
+        '깻잎과 들깨가루를 취향껏 넣고 뚜껑 덮어 20분 더 끓이면 완성! (남은 국물에 볶음밥 필수)'
+      ],
+      link: 'https://www.instagram.com/reel/DfMYJjbtTAH/',
+      memo: '고기가 잘게 썰려 있어도 맛있고, 중화면이나 수제비를 넣어 먹어도 좋다는 후기가 많음. 볶음밥까지 추천!',
+      createdAt: t - 2000,
+      updatedAt: t - 2000
+    }),
+    normRecipe({
+      id: 'seed-kimgugsu',
+      title: '추억의 김국수',
+      cuisine: '한식',
+      form: '면·밥',
+      servings: '1인 기준',
+      source: '@yeonijubang',
+      mains: ['조미김 2봉','소면 1인분','계란 1개','대파 2줌','물 700ml'],
+      seasonings: ['국간장 1큰술','참치액 2큰술','다진 마늘 1큰술','고춧가루 1큰술','참기름 약간'],
+      steps: [
+        '냄비에 조미김 2봉을 부숴 넣고, 다진 마늘 1큰술, 고춧가루 1큰술, 참치액 2큰술, 국간장 1큰술, 송송 썬 대파 2줌을 넣는다.',
+        '물 700ml를 붓고 강불에서 한소끔 끓여 국물을 우려낸다.',
+        '국물이 팔팔 끓어오르면 삶아 둔 소면(또는 마른 면) 1인분을 넣는다.',
+        '면이 익어갈 때쯤 계란 1개를 풀어 국물에 원을 그리며 부어 몽글몽글하게 익힌다.',
+        '불을 끄고 참기름을 한 바퀴 둘러 고소하게 마무리한다.'
+      ],
+      link: 'https://www.instagram.com/reel/DebcOjJSG-T/',
+      memo: '릴스 댓글에 물 600ml로 했더니 싱거워서 소금을 조금 넣었다는 팁과, 멸치/다시 육수를 쓰면 더 깊다는 의견도 있음. (원작자 연 주방 레시피 기준)',
+      createdAt: t - 1000,
+      updatedAt: t - 1000
+    }),
+    normRecipe({
+      id: 'seed-eomuk-buchu',
+      title: '어묵부추잡채',
+      cuisine: '한식',
+      form: '반찬',
+      servings: '2인 기준',
+      source: '@foodstylist_som',
+      mains: ['당면 100g','어묵 3장','부추 20g','양파'],
+      seasonings: ['물 200ml(1컵)','진간장 2큰술','올리고당 2큰술','맛술 1큰술','굴소스 1큰술','멸치액젓 1/2큰술','다진 마늘 1큰술','파기름(또는 식용유)','참기름','후추','통깨'],
+      steps: [
+        '먼저 당면을 물에 담가 불려 두고, 어묵과 양파를 채 썬다.',
+        '파기름(또는 식용유)을 두른 팬에 다진 마늘 1큰술과 양파를 넣고 볶다가 어묵도 넣어 노릇하게 볶는다.',
+        '불려 둔 당면을 넣고 물 200ml, 맛술 1큰술, 진간장 2큰술, 멸치액젓 1/2큰술, 굴소스 1큰술, 올리고당 2큰술을 넣어 섞는다.',
+        '살짝 졸여 윤기가 나면 부추를 넣고 버무린다.',
+        '불을 끄고 참기름, 후추, 통깨를 듬뿍 뿌려 완성한다.'
+      ],
+      link: 'https://www.instagram.com/reel/DeaezMMgsPI/',
+      memo: '',
+      createdAt: t,
+      updatedAt: t
+    })
+  ];
+}
+/* ================= RECIPE-CORE:END ================= */
+</script>
+
+<script>
+/* ==================================================================
+   화면 (UI) — 이 기기에 먼저 저장하고, 로그인하면 구름과 맞춰요
+   ================================================================== */
+(function(){
+  var LS_RECIPES = 'rb.recipes.v1';
+  var LS_BASE    = 'rb.base.v1';      /* { uid: {recipes, rev} } */
+  var LS_BACKUP  = 'rb.backups.v1';
+  var LS_SEEDED  = 'rb.seeded.v1';
+  var LS_EMAIL   = 'rb.email.v1';
+  var LS_CHECKS  = 'rb.checks.v1';    /* { recipeId: { "주재료|양파": 1 } } */
+
+  var state = {
+    recipes: [],
+    base: [],
+    rev: 0,
+    user: null,
+    syncReady: false,
+    cloudState: 'local',        /* local | synced | pending | error | guest */
+    cuisine: '전체',
+    form: '전체',
+    query: '',
+    openId: null,
+    editingId: null,
+    newCuisine: '한식',
+    newForm: '메인'
+  };
+  window.RB = state;
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+  var toastTimer = null;
+  function toast(msg){
+    var el = $('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------------- 이 기기 저장 ---------------- */
+  function loadLocal(){
+    try{
+      var raw = localStorage.getItem(LS_RECIPES);
+      if(!raw) return null;
+      var arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return null;
+      return arr.map(normRecipe);
+    }catch(err){ return null; }
+  }
+  function saveLocal(){
+    try{ localStorage.setItem(LS_RECIPES, JSON.stringify(state.recipes)); }catch(err){}
+    backupLocal();
+  }
+  function backupLocal(){
+    try{
+      var list = JSON.parse(localStorage.getItem(LS_BACKUP) || '[]');
+      if(!Array.isArray(list)) list = [];
+      var snap = JSON.stringify(state.recipes);
+      if(list.length && JSON.stringify(list[0].recipes) === snap) return;
+      list.unshift({ at: Date.now(), recipes: state.recipes });
+      localStorage.setItem(LS_BACKUP, JSON.stringify(list.slice(0, 5)));
+    }catch(err){}
+  }
+  function loadBackups(){
+    try{
+      var list = JSON.parse(localStorage.getItem(LS_BACKUP) || '[]');
+      return Array.isArray(list) ? list : [];
+    }catch(err){ return []; }
+  }
+  function loadBaseMap(){
+    try{ return JSON.parse(localStorage.getItem(LS_BASE) || '{}') || {}; }catch(err){ return {}; }
+  }
+  function saveBase(uidKey, list, rev){
+    try{
+      var map = loadBaseMap();
+      map[uidKey] = { recipes: list, rev: rev || 0 };
+      localStorage.setItem(LS_BASE, JSON.stringify(map));
+    }catch(err){}
+  }
+  function loadBase(uidKey){
+    var map = loadBaseMap();
+    var v = map[uidKey];
+    return v && Array.isArray(v.recipes) ? v : null;
+  }
+  function loadChecks(){
+    try{ return JSON.parse(localStorage.getItem(LS_CHECKS) || '{}') || {}; }catch(err){ return {}; }
+  }
+  function saveChecks(map){
+    try{ localStorage.setItem(LS_CHECKS, JSON.stringify(map)); }catch(err){}
+  }
+
+  /* ---------------- 처음 기본 레시피 ---------------- */
+  function seedIfFirstTime(){
+    if(localStorage.getItem(LS_SEEDED)) return false;
+    try{ localStorage.setItem(LS_SEEDED, '1'); }catch(err){}
+    return true;
+  }
+
+  /* ---------------- 상태 표시 ---------------- */
+  function setCloudInfo(){
+    var el = $('cloudInfo');
+    var btn = $('btnAuth');
+    if(state.user){
+      el.textContent = (state.cloudState === 'synced' ? '☁️ 동기화됨 · ' : '⏳ 동기화 중 · ') + state.user.email;
+      btn.textContent = '로그아웃';
+      $('btnLogout').classList.remove('hidden');
+    } else {
+      el.textContent = '이 기기에만 저장됨 · 로그인하면 폰·태블릿이 함께 써요';
+      btn.textContent = '로그인';
+      $('btnLogout').classList.add('hidden');
+    }
+  }
+
+  /* ---------------- 필터 칩 ---------------- */
+  function renderFilterChips(){
+    var c = '';
+    ['전체'].concat(CUISINES).forEach(function(v){
+      c += '<button class="chip' + (state.cuisine === v ? ' on' : '') + '" data-cuisine="' + esc(v) + '">' + esc(v) + '</button>';
+    });
+    $('cuisineChips').innerHTML = c;
+
+    var f = '';
+    ['전체'].concat(FORMS).forEach(function(v){
+      f += '<button class="chip' + (state.form === v ? ' on' : '') + '" data-form="' + esc(v) + '">' + esc(v) + '</button>';
+    });
+    $('formChips').innerHTML = f;
+  }
+
+  function renderIngredientChips(){
+    var names = topIngredients(state.recipes, 14);
+    var q = normText(state.query);
+    var html = names.map(function(n){
+      var on = q && normText(n) === q;
+      return '<button class="chip mini' + (on ? ' on' : '') + '" data-ing="' + esc(n) + '">' + esc(ingLabel(n, 14)) + '</button>';
+    }).join('');
+    $('ingChips').innerHTML = html || '<span class="sub-hint" style="padding-top:8px">재료를 넣으면 여기에 자주 쓰는 재료가 모여요.</span>';
+    $('ingRow').classList.toggle('hidden', names.length === 0);
+  }
+
+  /* ---------------- 목록 ---------------- */
+  function recipeCard(r){
+    var parts = [];
+    if(r.servings) parts.push(esc(r.servings));
+    if(r.source) parts.push(esc(r.source));
+
+    var ings = (r.mains || []).slice(0, 4).map(function(t){
+      return '<button class="r-ing" data-ing="' + esc(ingName(t)) + '">' + esc(ingLabel(t, 10)) + '</button>';
+    }).join('');
+    var rest = (r.mains || []).length - 4;
+
+    return '<button class="recipe" data-open="' + esc(r.id) + '">'
+      + '<div class="r-top"><h3 class="r-title">' + esc(r.title || '이름 없는 레시피') + '</h3><span class="r-arrow">›</span></div>'
+      + '<div class="badges"><span class="badge">' + esc(r.cuisine) + '</span><span class="badge form">' + esc(r.form) + '</span>'
+      + (r.steps && r.steps.length ? '<span class="badge form" style="background:#F3EFEA;border-color:#E7DED3;color:#7A6A5B">' + r.steps.length + '단계</span>' : '')
+      + '</div>'
+      + (parts.length ? '<div class="r-meta">' + parts.join(' · ') + '</div>' : '')
+      + (ings ? '<div class="r-ings">' + ings + (rest > 0 ? '<span class="r-more">+' + rest + '</span>' : '') + '</div>' : '')
+      + '</button>';
+  }
+
+  function renderList(){
+    var filtered = filterRecipes(state.recipes, { cuisine: state.cuisine, form: state.form, query: state.query });
+    var total = state.recipes.length;
+    var isFiltered = state.cuisine !== '전체' || state.form !== '전체' || !!normText(state.query);
+
+    $('countText').textContent = isFiltered
+      ? filtered.length + '개 / 전체 ' + total + '개'
+      : '레시피 ' + total + '개';
+    $('btnReset').classList.toggle('hidden', !isFiltered);
+
+    if(!total){
+      $('list').innerHTML = '<div class="empty"><b>아직 레시피가 없어요</b>오른쪽 위 <b style="display:inline;font-size:16px">＋ 새 레시피</b>를 눌러 첫 레시피를 담아 보세요.</div>';
+      return;
+    }
+    if(!filtered.length){
+      $('list').innerHTML = '<div class="empty"><b>조건에 맞는 레시피가 없어요</b>다른 재료로 찾아보거나, 위의 종류·형태를 ‘전체’로 바꿔 보세요.</div>';
+      return;
+    }
+    $('list').innerHTML = filtered.map(recipeCard).join('');
+  }
+
+  /* ---------------- 상세 ---------------- */
+  function findRecipe(id){
+    for(var i = 0; i < state.recipes.length; i++) if(state.recipes[i].id === id) return state.recipes[i];
+    return null;
+  }
+
+  function checkKey(section, text){ return section + '|' + ingName(text); }
+  function isChecked(map, id, section, text){
+    var m = map[id];
+    return !!(m && m[checkKey(section, text)]);
+  }
+
+  function ingListHTML(r, section, items, title, icon){
+    if(!items || !items.length) return '';
+    var map = loadChecks();
+    var rows = items.map(function(t){
+      var on = isChecked(map, r.id, section, t);
+      return '<button class="ing' + (on ? ' on' : '') + '" data-check="' + esc(section) + '|' + esc(t) + '">'
+        + '<span class="box">✓</span><span class="txt">' + esc(t) + '</span></button>';
+    }).join('');
+    return '<div class="sec"><h4 class="sec-h"><span>' + icon + '</span>' + title
+      + '<span class="n">' + items.length + '</span></h4><div class="ings">' + rows + '</div></div>';
+  }
+
+  function renderDetail(r){
+    if(!r){ closeDetail(); return; }
+    var meta = [];
+    if(r.servings) meta.push(esc(r.servings));
+    if(r.source) meta.push(esc(r.source));
+
+    var html = ''
+      + '<div class="sheet-head">'
+      +   '<div style="min-width:0">'
+      +     '<h2 class="sheet-title">' + esc(r.title || '이름 없는 레시피') + '</h2>'
+      +     '<div class="badges"><span class="badge">' + esc(r.cuisine) + '</span><span class="badge form">' + esc(r.form) + '</span></div>'
+      +     (meta.length ? '<div class="det-meta">' + meta.join(' · ') + '</div>' : '')
+      +   '</div>'
+      +   '<button class="x" id="detailClose" aria-label="닫기">✕</button>'
+      + '</div>'
+      + ingListHTML(r, '주재료', r.mains, '주재료', '🧺')
+      + ingListHTML(r, '양념', r.seasonings, '양념 · 기타', '🧂')
+      + (r.steps && r.steps.length
+          ? '<div class="sec"><h4 class="sec-h"><span>👩‍🍳</span>만드는 법<span class="n">' + r.steps.length + '단계</span></h4><div class="steps">'
+            + r.steps.map(function(s, i){
+                return '<div class="step"><span class="num">' + (i + 1) + '</span><span class="txt">' + esc(s) + '</span></div>';
+              }).join('')
+            + '</div></div>'
+          : '')
+      + (r.memo ? '<div class="sec"><h4 class="sec-h"><span>📝</span>메모 · 꿀팁</h4><div class="memo">' + esc(r.memo) + '</div></div>' : '')
+      + '<div class="det-actions">'
+      +   (r.link ? '<a class="linkbtn" href="' + esc(r.link) + '" target="_blank" rel="noopener noreferrer">'
+                  + (r.link.indexOf('instagram.com') >= 0 ? '📺 원본 릴스 보기' : '🔗 원본 보기') + '</a>' : '')
+      +   '<button class="ghost" id="btnEditFromDetail">✏️ 수정</button>'
+      +   '<button class="ghost danger" id="btnDeleteFromDetail">🗑 삭제</button>'
+      + '</div>';
+
+    $('detailBody').innerHTML = html;
+    $('detailWrap').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    $('detailSheet').scrollTop = 0;
+
+    $('detailClose').onclick = closeDetail;
+    $('btnEditFromDetail').onclick = function(){ closeDetail(); openEditor(r.id); };
+    $('btnDeleteFromDetail').onclick = function(){ askDelete(r.id); };
+  }
+  function closeDetail(){
+    $('detailWrap').classList.add('hidden');
+    document.body.style.overflow = '';
+    state.openId = null;
+  }
+  function openDetail(id){
+    var r = findRecipe(id);
+    if(!r) return;
+    state.openId = id;
+    renderDetail(r);
+  }
+
+  /* ---------------- 추가 / 수정 ---------------- */
+  function renderPickers(){
+    $('pickCuisine').innerHTML = CUISINES.map(function(v){
+      return '<button type="button" class="chip' + (state.newCuisine === v ? ' on' : '') + '" data-pick="cuisine|' + esc(v) + '">' + esc(v) + '</button>';
+    }).join('');
+    $('pickForm').innerHTML = FORMS.map(function(v){
+      return '<button type="button" class="chip' + (state.newForm === v ? ' on' : '') + '" data-pick="form|' + esc(v) + '">' + esc(v) + '</button>';
+    }).join('');
+  }
+
+  function openEditor(id){
+    var r = id ? findRecipe(id) : null;
+    state.editingId = r ? r.id : null;
+    $('editorTitle').textContent = r ? '레시피 수정' : '새 레시피';
+    $('editorHint').textContent = r
+      ? '고칠 곳만 고치고 저장을 눌러 주세요.'
+      : '재료와 만드는 법은 한 줄에 하나씩 적으면 자동으로 나눠 담아요.';
+    $('fId').value = r ? r.id : '';
+    $('fTitle').value = r ? r.title : '';
+    $('fServings').value = r ? r.servings : '';
+    $('fSource').value = r ? r.source : '';
+    $('fMains').value = r ? (r.mains || []).join('\n') : '';
+    $('fSeasonings').value = r ? (r.seasonings || []).join('\n') : '';
+    $('fSteps').value = r ? (r.steps || []).join('\n') : '';
+    $('fLink').value = r ? r.link : '';
+    $('fMemo').value = r ? r.memo : '';
+    state.newCuisine = r ? r.cuisine : '한식';
+    state.newForm = r ? r.form : '메인';
+    renderPickers();
+    $('btnDeleteInEditor').classList.toggle('hidden', !r);
+    $('editorWrap').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    if(!r) setTimeout(function(){ $('fTitle').focus(); }, 120);
+  }
+  function closeEditor(){
+    $('editorWrap').classList.add('hidden');
+    document.body.style.overflow = '';
+    state.editingId = null;
+  }
+
+  function saveEditor(){
+    var title = $('fTitle').value.trim();
+    if(!title){
+      toast('요리 이름을 먼저 적어 주세요');
+      $('fTitle').focus();
+      return;
+    }
+    var now = Date.now();
+    var fields = {
+      title: title,
+      cuisine: state.newCuisine,
+      form: state.newForm,
+      servings: $('fServings').value.trim(),
+      source: $('fSource').value.trim(),
+      mains: parseList($('fMains').value),
+      seasonings: parseList($('fSeasonings').value),
+      steps: parseSteps($('fSteps').value),
+      link: $('fLink').value.trim(),
+      memo: $('fMemo').value.trim(),
+      updatedAt: now
+    };
+
+    if(state.editingId){
+      var idx = -1;
+      state.recipes.forEach(function(x, i){ if(x.id === state.editingId) idx = i; });
+      if(idx < 0){ closeEditor(); return; }
+      var prev = state.recipes[idx];
+      var next = normRecipe(Object.assign({}, prev, fields, { createdAt: prev.createdAt }));
+      state.recipes[idx] = next;
+      toast('레시피를 고쳤어요');
+    } else {
+      var fresh = normRecipe(Object.assign({ id: coreUid(), createdAt: now }, fields));
+      state.recipes.unshift(fresh);
+      toast('레시피를 담았어요');
+    }
+    closeEditor();
+    renderAll();
+    markDirty();
+  }
+
+  function askDelete(id){
+    var r = findRecipe(id);
+    if(!r) return;
+    if(!confirm('「' + (r.title || '이 레시피') + '」를 삭제할까요?\n지운 레시피는 되돌리기 어려워요.')) return;
+    state.recipes = state.recipes.filter(function(x){ return x.id !== id; });
+    var checks = loadChecks();
+    delete checks[id];
+    saveChecks(checks);
+    closeDetail();
+    renderAll();
+    markDirty();
+    toast('삭제했어요');
+  }
+
+  /* ---------------- 저장 흐름 ---------------- */
+  function renderAll(){
+    renderFilterChips();
+    renderIngredientChips();
+    renderList();
+    setCloudInfo();
+  }
+
+  var saveTimer = null;
+  function markDirty(){
+    saveLocal();
+    if(!state.user){ state.cloudState = 'guest'; setCloudInfo(); return; }
+    if(!state.syncReady){ state.cloudState = 'pending'; setCloudInfo(); return; }
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){ window.cloudSave && window.cloudSave(); }, 300);
+  }
+
+  /* cloud 모듈이 부르는 함수들 */
+  window.RBApp = {
+    getState: function(){ return state; },
+    getRecipes: function(){ return state.recipes; },
+    getBase: function(){ return state.base; },
+    isSeeded: function(){ return !!localStorage.getItem(LS_SEEDED); },
+    markSeeded: function(){ try{ localStorage.setItem(LS_SEEDED, '1'); }catch(err){} },
+    seedRecipes: seedRecipes,
+    setRecipes: function(list){
+      state.recipes = list;
+      saveLocal();
+      renderAll();
+    },
+    applyFromCloud: function(list, rev){
+      var next = (list || []).map(normRecipe);
+      state.recipes = next;
+      state.base = next;
+      state.rev = rev || 0;
+      if(state.user) saveBase(state.user.uid, next, state.rev);
+      saveLocal();
+      renderAll();
+    },
+    setCloudState: function(s){ state.cloudState = s; setCloudInfo(); },
+    setUser: function(u){
+      state.user = u || null;
+      state.syncReady = false;
+      if(u){
+        var stored = loadBase(u.uid);
+        state.base = stored ? stored.recipes : [];
+        state.rev = stored ? (stored.rev || 0) : 0;
+      } else {
+        state.base = [];
+        state.rev = 0;
+      }
+      renderAll();
+    },
+    setSyncReady: function(v){ state.syncReady = !!v; },
+    push: markDirty,
+    toast: toast,
+    render: renderAll
+  };
+
+  /* ---------------- 이벤트 ---------------- */
+  document.addEventListener('click', function(ev){
+    var t = ev.target.closest ? ev.target.closest('[data-open],[data-cuisine],[data-form],[data-ing],[data-check],[data-pick],[data-restore]') : null;
+    if(!t) return;
+
+    if(t.hasAttribute('data-open')){
+      openDetail(t.getAttribute('data-open'));
+      return;
+    }
+    if(t.hasAttribute('data-cuisine')){
+      state.cuisine = t.getAttribute('data-cuisine');
+      renderFilterChips(); renderList();
+      return;
+    }
+    if(t.hasAttribute('data-form')){
+      state.form = t.getAttribute('data-form');
+      renderFilterChips(); renderList();
+      return;
+    }
+    if(t.hasAttribute('data-ing')){
+      var name = t.getAttribute('data-ing');
+      state.query = name;
+      $('search').value = name;
+      $('btnClear').classList.remove('hidden');
+      renderIngredientChips(); renderList();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if(t.hasAttribute('data-check')){
+      var pair = t.getAttribute('data-check');
+      var bar = pair.indexOf('|');
+      var section = pair.slice(0, bar), text = pair.slice(bar + 1);
+      var id = state.openId;
+      if(!id) return;
+      var map = loadChecks();
+      if(!map[id]) map[id] = {};
+      var k = checkKey(section, text);
+      if(map[id][k]) delete map[id][k]; else map[id][k] = 1;
+      saveChecks(map);
+      t.classList.toggle('on', !!map[id][k]);
+      return;
+    }
+    if(t.hasAttribute('data-pick')){
+      var p = t.getAttribute('data-pick');
+      var bar2 = p.indexOf('|');
+      var kind = p.slice(0, bar2), val = p.slice(bar2 + 1);
+      if(kind === 'cuisine') state.newCuisine = val; else state.newForm = val;
+      renderPickers();
+      return;
+    }
+    if(t.hasAttribute('data-restore')){
+      var at = Number(t.getAttribute('data-restore'));
+      var list = loadBackups();
+      var hit = null;
+      list.forEach(function(b){ if(b.at === at) hit = b; });
+      if(!hit) return;
+      if(!confirm('이 시점의 기록(' + new Date(at).toLocaleString('ko-KR') + ')으로 되돌릴까요?\n지금 화면의 레시피는 이 백업으로 바뀝니다.')) return;
+      state.recipes = (hit.recipes || []).map(normRecipe);
+      saveLocal();
+      renderAll();
+      markDirty();
+      $('backupWrap').classList.add('hidden');
+      toast('백업으로 되돌렸어요');
+      return;
+    }
+  });
+
+  /* 검색 */
+  var searchTimer = null;
+  $('search').addEventListener('input', function(){
+    var v = this.value;
+    $('btnClear').classList.toggle('hidden', !v);
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function(){
+      state.query = v;
+      renderIngredientChips();
+      renderList();
+    }, 120);
+  });
+  $('btnClear').onclick = function(){
+    $('search').value = '';
+    state.query = '';
+    this.classList.add('hidden');
+    renderIngredientChips(); renderList();
+  };
+  $('btnReset').onclick = function(){
+    state.cuisine = '전체'; state.form = '전체'; state.query = '';
+    $('search').value = ''; $('btnClear').classList.add('hidden');
+    renderAll();
+  };
+
+  /* 열기/닫기 */
+  $('btnNew').onclick = function(){ openEditor(null); };
+  $('editorClose').onclick = closeEditor;
+  $('btnSave').onclick = saveEditor;
+  $('btnDeleteInEditor').onclick = function(){
+    if(state.editingId){ var id = state.editingId; closeEditor(); askDelete(id); }
+  };
+  $('detailWrap').addEventListener('click', function(e){ if(e.target === this) closeDetail(); });
+  $('editorWrap').addEventListener('click', function(e){ if(e.target === this) closeEditor(); });
+  $('authWrap').addEventListener('click', function(e){ if(e.target === this) closeAuth(); });
+  $('backupWrap').addEventListener('click', function(e){ if(e.target === this) this.classList.add('hidden'); });
+  $('backupClose').onclick = function(){ $('backupWrap').classList.add('hidden'); };
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if(!$('detailWrap').classList.contains('hidden')) closeDetail();
+    if(!$('editorWrap').classList.contains('hidden')) closeEditor();
+    if(!$('authWrap').classList.contains('hidden')) closeAuth();
+    if(!$('backupWrap').classList.contains('hidden')) $('backupWrap').classList.add('hidden');
+  });
+
+  /* 로그인 창 */
+  function openAuth(){
+    $('authMsg').textContent = '';
+    $('aEmail').value = localStorage.getItem(LS_EMAIL) || (state.user ? state.user.email : '');
+    $('aPass').value = '';
+    $('btnLogout').classList.toggle('hidden', !state.user);
+    $('authWrap').classList.remove('hidden');
+    setTimeout(function(){ if(!$('aEmail').value) $('aEmail').focus(); }, 100);
+  }
+  function closeAuth(){ $('authWrap').classList.add('hidden'); }
+  window.closeAuth = closeAuth;
+
+  $('btnAuth').onclick = function(){
+    if(state.user){ window.cloudLogout && window.cloudLogout(); return; }
+    openAuth();
+  };
+  $('authClose').onclick = closeAuth;
+  $('btnLogout').onclick = function(){ window.cloudLogout && window.cloudLogout(); closeAuth(); };
+  $('btnBackupOpen').onclick = function(){ closeAuth(); openBackups(); };
+
+  function doAuth(create){
+    var email = $('aEmail').value.trim();
+    var pass = $('aPass').value;
+    if(!email || !pass){ $('authMsg').textContent = '이메일과 비밀번호를 모두 넣어 주세요.'; return; }
+    try{ localStorage.setItem(LS_EMAIL, email); }catch(err){}
+    $('authMsg').textContent = '확인 중…';
+    if(window.cloudLogin) window.cloudLogin(email, pass, create);
+    else $('authMsg').textContent = '지금은 로그인 연결이 안 돼요. 인터넷을 확인해 주세요.';
+  }
+  $('btnLogin').onclick = function(){ doAuth(false); };
+  $('btnCreate').onclick = function(){ doAuth(true); };
+  $('aPass').addEventListener('keydown', function(e){ if(e.key === 'Enter') doAuth(false); });
+
+  window.authError = function(msg){ $('authMsg').textContent = msg; };
+  window.authOk = function(email){ $('authMsg').textContent = '로그인됐어요.'; $('authMsg').classList.add('auth-ok'); closeAuth(); };
+  window.onSignedOut = function(){ toast('로그아웃했어요. 이 기기에는 계속 저장돼요.'); };
+
+  /* 백업 창 */
+  function openBackups(){
+    var list = loadBackups();
+    $('backupList').innerHTML = list.length
+      ? list.map(function(b){
+          var when = new Date(b.at).toLocaleString('ko-KR');
+          var n = (b.recipes || []).length;
+          return '<div class="backup-item"><div><div class="bi-main">' + esc(when) + '</div><div class="bi-sub">레시피 ' + n + '개</div></div>'
+            + '<button class="ghost small" data-restore="' + b.at + '">되돌리기</button></div>';
+        }).join('')
+      : '<p class="sub-hint">아직 남겨 둔 기록이 없어요. 레시피를 저장하면 자동으로 쌓여요.</p>';
+    $('backupWrap').classList.remove('hidden');
+  }
+  $('btnBackupOpen').addEventListener('click', openBackups);
+
+  /* ---------------- 시작 ---------------- */
+  (function init(){
+    var local = loadLocal();
+    if(local && local.length){
+      state.recipes = local;
+    } else if(local && local.length === 0){
+      state.recipes = [];
+    } else if(seedIfFirstTime()){
+      state.recipes = seedRecipes();
+      saveLocal();
+    } else {
+      state.recipes = [];
+    }
+    renderAll();
+  })();
+})();
+</script>
+
+<script type="module">
+/* ==================================================================
+   구름(Firebase) 연결 · 3-way 병합 저장
+   경로: families/{uid}/shared/recipeBook  (가족 대시보드·후기관리와 분리)
+   ================================================================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, onSnapshot, runTransaction, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDKVtLwxYHibYHI171cHWNoJ5cNmKOz0qQ",
+  authDomain: "family-quest-48ae5.firebaseapp.com",
+  projectId: "family-quest-48ae5",
+  storageBucket: "family-quest-48ae5.firebasestorage.app",
+  messagingSenderId: "884323524880",
+  appId: "1:884323524880:web:6f92b7b76349d574c64595",
+  measurementId: "G-SGCR60TRWF"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const App = window.RBApp;
+
+let unsub = null;
+let saving = false;
+let queued = false;
+let loadedOnce = false;
+
+function docRef(uid){ return doc(db, 'families', uid, 'shared', 'recipeBook'); }
+
+function normalizeDoc(data){
+  const d = data || {};
+  return {
+    recipes: Array.isArray(d.recipes) ? d.recipes : [],
+    rev: Number(d.rev) || 0,
+    seeded: !!d.seeded,
+    updatedAt: d.updatedAt || null
+  };
+}
+
+/* ---------- 3-way 병합 저장 ---------- */
+async function saveToCloud(){
+  const st = App.getState();
+  if(!st.user) return;
+  if(!st.syncReady){ App.setCloudState('pending'); return; }
+  if(saving){ queued = true; return; }
+
+  const mine = App.getRecipes();
+  const base = App.getBase();
+  if(mine.length === 0 && base.length > 0){
+    App.setCloudState('error');
+    App.toast('기존 레시피가 있는데 빈 화면이라 저장을 막았어요. 백업에서 되돌릴 수 있어요.');
+    return;
+  }
+
+  saving = true;
+  try{
+    const ref = docRef(st.user.uid);
+    let merged = null, rev = 0;
+    try{
+      const result = await runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref);
+        const server = snap.exists() ? normalizeDoc(snap.data()) : { recipes: [], rev: 0 };
+        const m = window.mergeRecipes(base, mine, server.recipes);
+        const nextRev = Math.max(server.rev, st.rev || 0) + 1;
+        tx.set(ref, {
+          recipes: m,
+          rev: nextRev,
+          seeded: true,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        return { recipes: m, rev: nextRev };
+      }, { maxAttempts: 4 });
+      merged = result.recipes; rev = result.rev;
+    }catch(txErr){
+      /* 오프라인이거나 트랜잭션이 막힌 경우: 마지막으로 본 서버본과 병합해 저장 */
+      const clientMerge = window.mergeRecipes(base, mine, base);
+      const nextRev = (st.rev || 0) + 1;
+      await setDoc(ref, {
+        recipes: clientMerge,
+        rev: nextRev,
+        seeded: true,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      merged = clientMerge; rev = nextRev;
+    }
+    App.applyFromCloud(merged, rev);
+    App.setCloudState('synced');
+  }catch(err){
+    console.warn('[recipe-book] save failed', err);
+    App.setCloudState('error');
+    App.toast('지금은 서버에 저장이 안 돼요. 이 기기에는 저장해 뒀어요.');
+  }finally{
+    saving = false;
+    if(queued){ queued = false; setTimeout(saveToCloud, 300); }
+  }
+}
+window.cloudSave = saveToCloud;
+
+/* ---------- 실시간 수신 ---------- */
+function watch(uid){
+  if(unsub){ unsub(); unsub = null; }
+  loadedOnce = false;
+  unsub = onSnapshot(docRef(uid), (snap) => {
+    const server = snap.exists() ? normalizeDoc(snap.data()) : { recipes: [], rev: 0, seeded: false };
+    let mine = App.getRecipes();
+
+    if(!loadedOnce){
+      loadedOnce = true;
+      /* 처음 열었을 때: 이 기기 + 서버를 3-way 병합 */
+      const base = App.getBase() || [];
+      /* 서버가 이미 '기본 레시피를 넣었다'고 표시해 뒀는데 비어 있으면 = 지운 것 → 되살리지 않음 */
+      if(server.seeded && server.recipes.length === 0){
+        App.markSeeded();
+        mine = mine.filter(r => (window.SEED_IDS || []).indexOf(r.id) < 0);
+        App.setRecipes(mine);
+      }
+      const merged = window.mergeRecipes(base, mine, server.recipes);
+      App.applyFromCloud(merged, server.rev);
+      App.setSyncReady(true);
+      App.setCloudState('synced');
+      if(server.recipes.length === 0 && merged.length > 0){
+        saveToCloud();                 /* 서버가 비었으면 이 기기 기록 올리기 */
+      } else if(JSON.stringify(merged) !== JSON.stringify(App.getBase())){
+        saveToCloud();
+      }
+      return;
+    }
+
+    /* 이후 변경: 다른 기기 기록을 합쳐서 반영 */
+    const base = App.getBase();
+    const merged = window.mergeRecipes(base, App.getRecipes(), server.recipes);
+    if(JSON.stringify(merged) !== JSON.stringify(App.getRecipes())){
+      App.applyFromCloud(merged, server.rev);
+      App.setCloudState('synced');
+    }
+  }, (err) => {
+    console.warn('[recipe-book] snapshot error', err);
+    App.setCloudState('error');
+  });
+}
+
+/* ---------- 로그인 ---------- */
+const AUTH_MSG = {
+  'auth/invalid-email': '이메일 주소 형식이 맞지 않아요.',
+  'auth/user-not-found': '이 이메일로 만든 계정이 없어요. 가족 대시보드에서 쓰는 이메일이 맞는지 확인해 주세요.',
+  'auth/wrong-password': '비밀번호가 맞지 않아요. 다시 확인해 주세요.',
+  'auth/invalid-credential': '이메일이나 비밀번호가 맞지 않아요. 다시 확인해 주세요.',
+  'auth/email-already-in-use': '이 이메일로 만든 계정이 이미 있어요. 그냥 로그인해 주세요.',
+  'auth/weak-password': '비밀번호가 너무 짧아요. 6자 이상으로 넣어 주세요.',
+  'auth/too-many-requests': '시도가 너무 많았어요. 잠시 뒤에 다시 해 주세요.',
+  'auth/network-request-failed': '인터넷 연결을 확인해 주세요.'
+};
+
+window.cloudLogin = async (email, pass, create) => {
+  try{
+    if(create) await createUserWithEmailAndPassword(auth, email, pass);
+    else await signInWithEmailAndPassword(auth, email, pass);
+    window.authOk(email);
+  }catch(err){
+    const code = (err && err.code) || '';
+    window.authError(AUTH_MSG[code] || ('로그인이 안 됐어요 (' + code + ')'));
+  }
+};
+
+window.cloudLogout = async () => {
+  try{
+    if(unsub){ unsub(); unsub = null; }
+    await signOut(auth);
+  }catch(err){}
+};
+
+onAuthStateChanged(auth, (user) => {
+  if(user){
+    App.setUser(user);
+    watch(user.uid);
+  } else {
+    if(unsub){ unsub(); unsub = null; }
+    loadedOnce = false;
+    App.setUser(null);
+    App.setCloudState('guest');
+  }
+});
+</script>
+</body>
+</html>
