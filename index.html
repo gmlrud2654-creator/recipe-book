@@ -128,7 +128,7 @@
   .r-arrow{flex:0 0 auto;color:#C0AB97;font-size:20px;line-height:1.2;padding-top:2px}
   .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
   .badge{
-    font-size:13px;font-weight:800;padding:4px 10px;border-radius:9px;letter-spacing:-.2px;
+    font-size:13.5px;font-weight:800;padding:5px 11px;border-radius:9px;letter-spacing:-.2px;
     background:var(--accent-soft);color:var(--accent-dark);
   }
   .badge.form{background:var(--gold);color:#8A5A12;border:1px solid var(--gold-line)}
@@ -179,11 +179,13 @@
     font-size:17px;font-weight:800;letter-spacing:-.3px;color:var(--ink);
   }
   .sec-h .n{font-size:14px;font-weight:800;color:var(--muted);background:var(--bg-2);border-radius:8px;padding:2px 8px}
-  .ings{display:flex;flex-direction:column;gap:8px}
+  .sec-hint{font-size:14px;color:var(--muted);margin:-4px 0 10px;line-height:1.5}
+  .ings{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+  @media(min-width:600px){ .ings{grid-template-columns:repeat(2,minmax(0,1fr))} }
   .ing{
-    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    display:flex;align-items:center;gap:11px;width:100%;text-align:left;
     background:#fff;border:1.5px solid var(--line);border-radius:15px;
-    padding:13px 14px;font-size:16.5px;line-height:1.5;color:var(--ink);font-weight:600;
+    padding:12px 13px;font-size:16.5px;line-height:1.5;color:var(--ink);font-weight:600;
   }
   .ing .box{
     flex:0 0 24px;width:24px;height:24px;border-radius:8px;border:2px solid #DCC9B5;
@@ -477,6 +479,7 @@ function ingName(text){
   var raw = String(text == null ? '' : text).trim();
   var s = raw.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ');
   s = s.replace(/[\d].*$/, '');
+  s = s.replace(/(크게|약간|듬뿍|조금|넉넉히|듬성듬성)\s*$/, '');
   s = s.replace(/[\s~,./+\-]+$/, '').trim();
   s = s.replace(/\s+/g, ' ');
   return s || raw;
@@ -938,7 +941,7 @@ function seedRecipes(){
     return !!(m && m[checkKey(section, text)]);
   }
 
-  function ingListHTML(r, section, items, title, icon){
+  function ingListHTML(r, section, items, title, icon, hint){
     if(!items || !items.length) return '';
     var map = loadChecks();
     var rows = items.map(function(t){
@@ -947,7 +950,9 @@ function seedRecipes(){
         + '<span class="box">✓</span><span class="txt">' + esc(t) + '</span></button>';
     }).join('');
     return '<div class="sec"><h4 class="sec-h"><span>' + icon + '</span>' + title
-      + '<span class="n">' + items.length + '</span></h4><div class="ings">' + rows + '</div></div>';
+      + '<span class="n">' + items.length + '</span></h4>'
+      + (hint ? '<p class="sec-hint">' + esc(hint) + '</p>' : '')
+      + '<div class="ings">' + rows + '</div></div>';
   }
 
   function renderDetail(r){
@@ -965,7 +970,7 @@ function seedRecipes(){
       +   '</div>'
       +   '<button class="x" id="detailClose" aria-label="닫기">✕</button>'
       + '</div>'
-      + ingListHTML(r, '주재료', r.mains, '주재료', '🧺')
+      + ingListHTML(r, '주재료', r.mains, '주재료', '🧺', r.mains && r.mains.length ? '재료를 누르면 준비한 것으로 체크돼요.' : '')
       + ingListHTML(r, '양념', r.seasonings, '양념 · 기타', '🧂')
       + (r.steps && r.steps.length
           ? '<div class="sec"><h4 class="sec-h"><span>👩‍🍳</span>만드는 법<span class="n">' + r.steps.length + '단계</span></h4><div class="steps">'
