@@ -207,6 +207,23 @@
   .ing.on .txt{color:#2E6450}
   .ing:active{transform:translateY(1px)}
 
+  /* 재료 한 줄: [체크 버튼] [🛒 쿠팡] */
+  .ing-row{display:flex;align-items:stretch;gap:7px;min-width:0}
+  .ing-row .ing{flex:1 1 auto;min-width:0}
+  .ing .txt{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+  .buy{
+    flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+    padding:0 10px;border-radius:14px;border:1.5px solid #E8D2B8;background:#FFF7EE;
+    color:#B4601F;font-size:13.5px;font-weight:800;line-height:1.2;white-space:nowrap;
+    text-decoration:none;
+  }
+  .buy:active{transform:translateY(1px);background:#FDEBD7}
+  @media(max-width:599px){
+    .ing-row{gap:6px}
+    .buy{padding:0 8px;font-size:12.5px;border-radius:12px}
+  }
+  .buy-note{font-size:12.5px;color:var(--muted);margin:10px 2px 0;line-height:1.55}
+
   .steps{display:flex;flex-direction:column;gap:11px}
   .step{
     display:flex;gap:14px;background:#fff;border:1.5px solid var(--line);
@@ -1008,13 +1025,22 @@ function seedRecipes(){
     return !!(m && m[checkKey(section, text)]);
   }
 
+  function coupangUrl(name){
+    return 'https://www.coupang.com/np/search?q=' + encodeURIComponent(name || '');
+  }
+
   function ingListHTML(r, section, items, title, icon, hint){
     if(!items || !items.length) return '';
     var map = loadChecks();
     var rows = items.map(function(t){
       var on = isChecked(map, r.id, section, t);
-      return '<button class="ing' + (on ? ' on' : '') + '" data-check="' + esc(section) + '|' + esc(t) + '">'
-        + '<span class="box"></span><span class="txt">' + esc(t) + '</span></button>';
+      var name = ingName(t) || t;                 /* 수량·단위를 뺀 재료 이름만 검색어로 */
+      return '<div class="ing-row">'
+        + '<button class="ing' + (on ? ' on' : '') + '" data-check="' + esc(section) + '|' + esc(t) + '">'
+        +   '<span class="box"></span><span class="txt">' + esc(t) + '</span></button>'
+        + '<a class="buy" href="' + esc(coupangUrl(name)) + '" target="_blank" rel="noopener noreferrer"'
+        +   ' data-buy="' + esc(name) + '" aria-label="' + esc(name) + ' 쿠팡에서 찾기" title="쿠팡에서 찾기">🛒 쿠팡</a>'
+        + '</div>';
     }).join('');
     return '<div class="sec"' + (section === '주재료' ? ' id="sec-ings"' : '') + '><h4 class="sec-h"><span>' + icon + '</span>' + title
       + '<span class="n">' + items.length + '</span></h4>'
@@ -1044,6 +1070,9 @@ function seedRecipes(){
       + '</div>'
       + ingListHTML(r, '주재료', r.mains, '주재료', '🧺', r.mains && r.mains.length ? '재료를 누르면 준비한 것으로 체크돼요.' : '')
       + ingListHTML(r, '양념', r.seasonings, '양념 · 기타', '🧂')
+      + (((r.mains && r.mains.length) || (r.seasonings && r.seasonings.length))
+          ? '<p class="buy-note">※ 추후 쿠팡 파트너스 링크를 연결하면 이 버튼을 통해 수익화가 가능해요. (현재는 일반 쿠팡 검색으로 연결됩니다)</p>'
+          : '')
       + (r.steps && r.steps.length
           ? '<div class="sec" id="sec-steps"><h4 class="sec-h"><span>👩‍🍳</span>만드는 법<span class="n">' + r.steps.length + '단계</span></h4><div class="steps">'
             + r.steps.map(function(s, i){
@@ -1364,6 +1393,11 @@ function seedRecipes(){
     if(state.editingId){ var id = state.editingId; closeEditor(); askDelete(id); }
   };
   $('detailWrap').addEventListener('click', function(e){ if(e.target === this) closeDetail(); });
+  /* 재료의 🛒 쿠팡 링크는 재료 체크 토글과 겹치지 않게 여기서 갈라 둔다 */
+  $('detailBody').addEventListener('click', function(e){
+    var a = e.target && e.target.closest ? e.target.closest('[data-buy]') : null;
+    if(a) e.stopPropagation();
+  });
   $('editorWrap').addEventListener('click', function(e){ if(e.target === this) closeEditor(); });
   $('authWrap').addEventListener('click', function(e){ if(e.target === this) closeAuth(); });
   $('backupWrap').addEventListener('click', function(e){ if(e.target === this) this.classList.add('hidden'); });
