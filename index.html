@@ -657,16 +657,16 @@ function mergeRecipes(baseList, mineList, serverList){
 
 /* 앱을 열었을 때 무엇을 보여 줄지 결정 (빈 화면 사고를 막는 규칙)
    - 이 기기에 저장된 레시피가 있으면 그대로
-   - 저장된 값이 빈 목록인데, 사용자가 직접 전부 지웠거나 기본 레시피를 이미 넣은 기기면 빈 화면 유지
-   - 그 밖(처음 여는 기기, 저장이 실패했던 기기)은 기본 레시피를 넣는다 */
+   - 저장된 값이 빈 목록인데, 사용자가 직접 전부 지웠거나(삭제 버튼) 서버 기준 빈 목록이 확정된(V3) 기기면 빈 화면 유지
+   - 그 밖(처음 여는 기기, 저장이 실패했던 기기, 예전 V2 표시만 남고 목록이 빈 기기)은 기본 레시피를 넣는다 */
 function initialPlan(opts){
   opts = opts || {};
   var list = opts.list;
   if(list && list.length) return { action: 'use', recipes: list };
   if(opts.raw === null || opts.raw === undefined) return { action: 'seed' };
-  if(opts.deletedAll) return { action: 'keep-empty' };
-  if(opts.seededV2) return { action: 'keep-empty' };
-  return { action: 'seed' };
+  if(opts.deletedAll) return { action: 'keep-empty' };   /* 사용자가 직접 전부 지움 */
+  if(opts.seededV3) return { action: 'keep-empty' };     /* V3 이후 정상적으로 빈 목록이 된 기기 */
+  return { action: 'seed' };                             /* 저장이 꼬여 빈 목록만 남은 기기 → 기본 레시피로 복구 */
 }
 
 /* 처음 한 번 넣어 두는 기본 레시피 4개 */
@@ -785,8 +785,9 @@ function seedRecipes(){
   var LS_SEEDED  = 'rb.seeded.v1';
   var LS_EMAIL   = 'rb.email.v1';
   var LS_CHECKS  = 'rb.checks.v1';    /* { recipeId: { "주재료|양파": 1 } } */
-  var LS_SEED_V2 = 'rb.seededV2.v1';  /* 기본 레시피 4개를 넣었는지 */
-  var LS_DELETED_ALL = 'rb.deletedAll.v1'; /* 사용자가 직접 전부 지웠는지 */
+  var LS_SEED_V2 = 'rb.seededV2.v1';  /* 기본 레시피 4개를 넣었는지 (예전 표시) */
+  var LS_SEED_V3 = 'rb.seededV3.v1';  /* 기본 레시피 복구(V3)를 마친 기기인지 */
+  var LS_DELETED_ALL = 'rb.deletedAll.v1'; /* 사용자가 직접 전부 지웠는지 ('1'일 때만 참) */
 
   var state = {
     recipes: [],
@@ -980,7 +981,12 @@ function seedRecipes(){
     $('btnReset').classList.toggle('hidden', !isFiltered);
 
     if(!total){
-      $('list').innerHTML = '<div class="empty"><b>아직 레시피가 없어요</b>오른쪽 위 <b style="display:inline;font-size:16px">＋ 새 레시피</b>를 눌러 첫 레시피를 담아 보세요.</div>';
+      $('list').innerHTML = '<div class="empty"><b>아직 레시피가 없어요</b>'
+        + '아래 버튼 한 번이면 제가 정리해 둔 <b style="display:inline;font-size:16px">기본 레시피 4개</b>가 바로 담겨요.'
+        + '<div style="margin:16px 0 4px"><button class="primary" data-seed="1">🍳 기본 레시피 4개 불러오기</button></div>'
+        + '<p class="sub-hint" style="margin:6px 0 0">크림치킨 리가토니 · 순살감자탕 · 추억의 김국수 · 어묵부추잡채</p>'
+        + '<p class="sub-hint" style="margin:10px 0 0">직접 담으시려면 오른쪽 위 <b style="display:inline;font-size:16px">＋ 새 레시피</b>를 눌러 주세요.</p>'
+        + '</div>';
       return;
     }
     if(!filtered.length){
@@ -1165,8 +1171,8 @@ function seedRecipes(){
     if(!r) return;
     if(!confirm('「' + (r.title || '이 레시피') + '」를 삭제할까요?\n지운 레시피는 되돌리기 어려워요.')) return;
     state.recipes = state.recipes.filter(function(x){ return x.id !== id; });
-    store.set(LS_DELETED_ALL, state.recipes.length === 0 ? '1' : '0');
-    if(state.recipes.length) store.remove(LS_DELETED_ALL);
+    if(state.recipes.length) store.remove(LS_DELETED_ALL);   /* 남은 게 있으면 '전부 지움' 아님 */
+    else store.set(LS_DELETED_ALL, '1');
     var checks = loadChecks();
     delete checks[id];
     saveChecks(checks);
@@ -1198,11 +1204,14 @@ function seedRecipes(){
     getState: function(){ return state; },
     getRecipes: function(){ return state.recipes; },
     getBase: function(){ return state.base; },
-    isSeeded: function(){ return !!store.get(LS_SEEDED); },
+    isSeeded: function(){ return store.get(LS_SEEDED) === '1'; },
     markSeeded: function(){ store.set(LS_SEEDED, '1'); },
-    isSeededV2: function(){ return !!store.get(LS_SEED_V2); },
+    isSeededV2: function(){ return store.get(LS_SEED_V2) === '1'; },
     markSeededV2: function(){ store.set(LS_SEED_V2, '1'); store.set(LS_SEEDED, '1'); },
-    isDeletedAll: function(){ return !!store.get(LS_DELETED_ALL); },
+    isSeededV3: function(){ return store.get(LS_SEED_V3) === '1'; },
+    markSeededV3: function(){ store.set(LS_SEED_V3, '1'); store.set(LS_SEED_V2, '1'); store.set(LS_SEEDED, '1'); },
+    /* '0' 같은 다른 문자열이 남아 있어도 참으로 읽지 않도록 '1'만 인정한다 */
+    isDeletedAll: function(){ return store.get(LS_DELETED_ALL) === '1'; },
     setDeletedAll: function(v){
       if(v) store.set(LS_DELETED_ALL, '1'); else store.remove(LS_DELETED_ALL);
     },
@@ -1245,9 +1254,17 @@ function seedRecipes(){
 
   /* ---------------- 이벤트 ---------------- */
   document.addEventListener('click', function(ev){
-    var t = ev.target.closest ? ev.target.closest('[data-open],[data-cuisine],[data-form],[data-ing],[data-check],[data-pick],[data-restore],[data-jump]') : null;
+    var t = ev.target.closest ? ev.target.closest('[data-open],[data-cuisine],[data-form],[data-ing],[data-check],[data-pick],[data-restore],[data-jump],[data-seed]') : null;
     if(!t) return;
 
+    if(t.hasAttribute('data-seed')){
+      /* 빈 화면에서 한 번 누르면 기본 레시피 4개를 담고 서버에도 올린다 */
+      putSeeds();
+      renderAll();
+      markDirty();
+      toast('기본 레시피 4개를 담았어요');
+      return;
+    }
     if(t.hasAttribute('data-open')){
       openDetail(t.getAttribute('data-open'));
       return;
@@ -1421,7 +1438,9 @@ function seedRecipes(){
   function putSeeds(msg){
     state.recipes = seedRecipes();
     saveLocal();
+    store.set(LS_SEED_V3, '1');
     store.set(LS_SEED_V2, '1');
+    store.remove(LS_DELETED_ALL);              /* 새로 담았으니 '전부 지움' 표시는 지운다 */
     if(store.get(LS_RECIPES)) store.set(LS_SEEDED, '1');
     if(msg) toast(msg);
     return state.recipes;
@@ -1435,8 +1454,8 @@ function seedRecipes(){
       var plan = initialPlan({
         raw: raw,
         list: local,
-        deletedAll: !!store.get(LS_DELETED_ALL),
-        seededV2: !!store.get(LS_SEED_V2)
+        deletedAll: store.get(LS_DELETED_ALL) === '1',
+        seededV3: store.get(LS_SEED_V3) === '1'
       });
       if(plan.action === 'use') state.recipes = plan.recipes;
       else if(plan.action === 'keep-empty') state.recipes = [];
@@ -1487,6 +1506,7 @@ function normalizeDoc(data){
     recipes: Array.isArray(d.recipes) ? d.recipes : [],
     rev: Number(d.rev) || 0,
     seeded: !!d.seeded,
+    seedV: Number(d.seedV) || 0,
     updatedAt: d.updatedAt || null
   };
 }
@@ -1521,7 +1541,7 @@ async function saveToCloud(){
           recipes: m,
           rev: nextRev,
           seeded: true,
-          seedV: 2,
+          seedV: 3,
           updatedAt: serverTimestamp()
         }, { merge: true });
         return { recipes: m, rev: nextRev };
@@ -1535,7 +1555,7 @@ async function saveToCloud(){
         recipes: clientMerge,
         rev: nextRev,
         seeded: true,
-        seedV: 2,
+        seedV: 3,
         updatedAt: serverTimestamp()
       }, { merge: true });
       merged = clientMerge; rev = nextRev;
@@ -1566,17 +1586,25 @@ function watch(uid){
       /* 처음 열었을 때: 이 기기 + 서버를 3-way 병합 */
       const base = App.getBase() || [];
       let merged = window.mergeRecipes(base, mine, server.recipes);
+      const serverSeedV = Number(server.seedV) || 0;
 
       /* 화면이 0개가 되는 일은 사용자가 직접 전부 지웠을 때만 일어나야 한다.
-         그 밖에 서버·이 기기 모두 비어 보이면 기본 레시피 4개를 넣어 되살린다. */
-      if(merged.length === 0 && !App.isDeletedAll()){
+         서버가 아직 V3 이전(빈 목록만 남은 상태)이면, 이 기기·서버가 모두 비어 보일 때
+         예전 '전부 지움' 표시가 꼬여 있어도 기본 레시피 4개를 되살리고 서버에 올린다. */
+      if(merged.length === 0 && serverSeedV < 3){
         merged = App.putSeeds();
-        App.markSeededV2();
+        App.markSeededV3();
+        App.setDeletedAll(false);
         App.applyFromCloud(merged, server.rev);
         App.setSyncReady(true);
         App.setCloudState('synced');
         saveToCloud();
         return;
+      }
+
+      /* V3 서버가 빈 목록을 확정한 경우 + 이 기기에도 아무것도 없으면 빈 화면 유지 */
+      if(merged.length === 0 && serverSeedV >= 3){
+        App.markSeededV3();
       }
 
       App.applyFromCloud(merged, server.rev);
