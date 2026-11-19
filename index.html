@@ -513,6 +513,8 @@ function ingName(text){
   var raw = String(text == null ? '' : text).trim();
   var s = raw.replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ');
   s = s.replace(/[\d].*$/, '');
+  s = s.replace(/\s*(한|반)\s*(주먹|줌|컵|숟갈|스푼|큰술|작은술|개|모|토막|마리)\s*$/, '');
+  s = s.replace(/(적당량|적당히|취향껏|먹기 좋게)\s*$/, '');
   s = s.replace(/(크게|약간|듬뿍|조금|넉넉히|듬성듬성)\s*$/, '');
   s = s.replace(/[\s~,./+\-]+$/, '').trim();
   s = s.replace(/\s+/g, ' ');
