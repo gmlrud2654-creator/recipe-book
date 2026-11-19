@@ -117,7 +117,7 @@
 
   /* ---------------- 레시피 카드 ---------------- */
   .recipe{
-    display:block;width:100%;text-align:left;
+    display:block;width:100%;text-align:left;cursor:pointer;
     background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
     padding:16px 16px 14px;margin-bottom:12px;box-shadow:var(--shadow);
     color:var(--ink);
@@ -197,9 +197,11 @@
   }
   .ing .box{
     flex:0 0 24px;width:24px;height:24px;border-radius:8px;border:2px solid #DCC9B5;
-    display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;
-    background:#fff;font-weight:800;
+    display:flex;align-items:center;justify-content:center;font-size:14px;
+    background:#fff;font-weight:800;color:#fff;
   }
+  .ing .box::after{content:''}
+  .ing.on .box::after{content:'✓'}
   .ing.on{background:var(--green-soft);border-color:#B9DCC8}
   .ing.on .box{background:var(--green);border-color:var(--green);color:#fff}
   .ing.on .txt{color:#2E6450}
@@ -1006,7 +1008,7 @@ function seedRecipes(){
     var rows = items.map(function(t){
       var on = isChecked(map, r.id, section, t);
       return '<button class="ing' + (on ? ' on' : '') + '" data-check="' + esc(section) + '|' + esc(t) + '">'
-        + '<span class="box">✓</span><span class="txt">' + esc(t) + '</span></button>';
+        + '<span class="box"></span><span class="txt">' + esc(t) + '</span></button>';
     }).join('');
     return '<div class="sec"' + (section === '주재료' ? ' id="sec-ings"' : '') + '><h4 class="sec-h"><span>' + icon + '</span>' + title
       + '<span class="n">' + items.length + '</span></h4>'
