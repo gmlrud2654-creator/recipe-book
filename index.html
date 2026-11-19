@@ -164,6 +164,12 @@
     .sheet{border-radius:26px;padding:24px 28px 28px;max-height:90vh}
   }
   .sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .sheet-head.sticky{
+    position:sticky;top:0;z-index:6;background:var(--card);
+    padding:4px 0 10px;margin:-4px 0 0;border-bottom:1px solid transparent;
+  }
+  .sheet-head.sticky.scrolled{border-bottom-color:var(--line)}
+  .sec{scroll-margin-top:84px}
   .sheet-title{margin:0;font-size:23px;line-height:1.38;letter-spacing:-.6px;font-weight:800}
   .x{
     flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);
@@ -330,7 +336,7 @@
 <div class="backdrop hidden" id="editorWrap">
   <div class="sheet">
     <div class="grab"></div>
-    <div class="sheet-head">
+    <div class="sheet-head sticky">
       <h2 class="sheet-title" id="editorTitle">새 레시피</h2>
       <button class="x" id="editorClose" aria-label="닫기">✕</button>
     </div>
@@ -964,18 +970,18 @@ function seedRecipes(){
     if(r.source) meta.push(esc(r.source));
 
     var html = ''
-      + '<div class="sheet-head">'
-      +   '<div style="min-width:0">'
-      +     '<h2 class="sheet-title">' + esc(r.title || '이름 없는 레시피') + '</h2>'
-      +     '<div class="badges"><span class="badge">' + esc(r.cuisine) + '</span><span class="badge form">' + esc(r.form) + '</span></div>'
-      +     (meta.length ? '<div class="det-meta">' + meta.join(' · ') + '</div>' : '')
-      +     ((r.steps && r.steps.length)
-              ? '<div class="jump"><button class="chip mini" data-jump="sec-steps">👩‍🍳 만드는 법으로 바로</button>'
-                + ((r.mains && r.mains.length) ? '<button class="chip mini" data-jump="sec-ings">🧺 재료 보기</button>' : '')
-                + '</div>'
-              : '')
-      +   '</div>'
+      + '<div class="sheet-head sticky" id="detailHead">'
+      +   '<h2 class="sheet-title">' + esc(r.title || '이름 없는 레시피') + '</h2>'
       +   '<button class="x" id="detailClose" aria-label="닫기">✕</button>'
+      + '</div>'
+      + '<div>'
+      +   '<div class="badges" style="margin-top:2px"><span class="badge">' + esc(r.cuisine) + '</span><span class="badge form">' + esc(r.form) + '</span></div>'
+      +   (meta.length ? '<div class="det-meta">' + meta.join(' · ') + '</div>' : '')
+      +   ((r.steps && r.steps.length)
+            ? '<div class="jump"><button class="chip mini" data-jump="sec-steps">👩‍🍳 만드는 법으로 바로</button>'
+              + ((r.mains && r.mains.length) ? '<button class="chip mini" data-jump="sec-ings">🧺 재료 보기</button>' : '')
+              + '</div>'
+            : '')
       + '</div>'
       + ingListHTML(r, '주재료', r.mains, '주재료', '🧺', r.mains && r.mains.length ? '재료를 누르면 준비한 것으로 체크돼요.' : '')
       + ingListHTML(r, '양념', r.seasonings, '양념 · 기타', '🧂')
@@ -1000,6 +1006,9 @@ function seedRecipes(){
     $('detailSheet').scrollTop = 0;
 
     $('detailClose').onclick = closeDetail;
+    var sheet = $('detailSheet');
+    var head = $('detailHead');
+    sheet.onscroll = function(){ head.classList.toggle('scrolled', sheet.scrollTop > 8); };
     $('btnEditFromDetail').onclick = function(){ closeDetail(); openEditor(r.id); };
     $('btnDeleteFromDetail').onclick = function(){ askDelete(r.id); };
   }
