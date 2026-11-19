@@ -248,12 +248,16 @@
   .two{display:flex;gap:12px}
   .two > .field{flex:1 1 0;min-width:0}
   @media(max-width:420px){.two{flex-direction:column;gap:0}}
+  /* 편집 화면: 본문만 스크롤, 저장 버튼은 늘 아래에 고정 (입력칸을 가리지 않음) */
+  .sheet.editor{display:flex;flex-direction:column;max-height:94vh;padding-bottom:0;overflow:hidden}
+  .sheet.editor .sheet-head,.sheet.editor .sub-hint{flex:0 0 auto}
+  .sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px}
   .savebar{
-    position:sticky;bottom:-26px;margin:6px -16px -26px;padding:12px 16px 16px;
-    background:linear-gradient(180deg,rgba(255,253,251,.6),var(--card) 42%);
-    display:flex;gap:10px;
+    flex:0 0 auto;display:flex;gap:10px;
+    margin:0 -16px;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));
+    background:var(--card);border-top:1px solid var(--line);
   }
-  @media(min-width:760px){.savebar{bottom:-28px;margin:6px -28px -28px;padding:12px 28px 20px}}
+  @media(min-width:760px){.savebar{margin:0 -28px;padding:14px 28px 18px}}
   .savebar .primary{flex:1 1 auto}
   .savebar .ghost{flex:0 0 auto}
 
@@ -334,14 +338,15 @@
 
 <!-- ================= 편집 ================= -->
 <div class="backdrop hidden" id="editorWrap">
-  <div class="sheet">
+  <div class="sheet editor">
     <div class="grab"></div>
-    <div class="sheet-head sticky">
+    <div class="sheet-head">
       <h2 class="sheet-title" id="editorTitle">새 레시피</h2>
       <button class="x" id="editorClose" aria-label="닫기">✕</button>
     </div>
     <p class="sub-hint" id="editorHint">재료와 만드는 법은 한 줄에 하나씩 적으면 자동으로 나눠 담아요.</p>
 
+    <div class="sheet-body" id="editorBody">
     <input type="hidden" id="fId" />
 
     <div class="field">
@@ -395,6 +400,8 @@
     <div class="field">
       <label for="fMemo">메모 · 꿀팁</label>
       <textarea id="fMemo" style="min-height:80px" placeholder="예) 아이들이랑 먹을 땐 머스타드 대신 카레를 넣어도 좋아요"></textarea>
+    </div>
+
     </div>
 
     <div class="savebar">
@@ -1100,6 +1107,8 @@ function seedRecipes(){
     $('btnDeleteInEditor').classList.toggle('hidden', !r);
     $('editorWrap').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    var body = $('editorBody');
+    if(body) body.scrollTop = 0;
     if(!r) setTimeout(function(){ $('fTitle').focus(); }, 120);
   }
   function closeEditor(){
